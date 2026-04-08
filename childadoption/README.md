@@ -105,25 +105,25 @@ A comprehensive Django-based web application for managing child adoptions, spons
 
 ## Configuration
 
-### Email Settings
+### Environment Variables
 
-Update the email settings in `childadoption/settings.py`:
+Create a `.env` file in the project root (copy from `.env.example`) and set the following variables:
 
-```python
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-app-password'
-```
+```bash
+# Django Settings
+DJANGO_SECRET_KEY=your-django-secret-key-here
 
-### Razorpay Configuration
+# Email Settings
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-email-app-password
 
-Update Razorpay credentials in `childadoption/settings.py`:
+# Razorpay Settings
+RAZORPAY_KEY_ID=your-razorpay-key-id
+RAZORPAY_KEY_SECRET=your-razorpay-key-secret
 
-```python
-RAZORPAY_KEY_ID = 'your-razorpay-key-id'
-RAZORPAY_KEY_SECRET = 'your-razorpay-key-secret'
+# Google OAuth Settings
+GOOGLE_OAUTH2_CLIENT_ID=your-google-client-id
+GOOGLE_OAUTH2_CLIENT_SECRET=your-google-client-secret
 ```
 
 ### Google OAuth Setup
@@ -131,7 +131,7 @@ RAZORPAY_KEY_SECRET = 'your-razorpay-key-secret'
 1. Create a project in Google Cloud Console
 2. Enable Google+ API
 3. Create OAuth 2.0 credentials
-4. Add the client ID and secret to your Django settings
+4. Add the client ID and secret to your environment variables
 
 ## Project Structure
 
