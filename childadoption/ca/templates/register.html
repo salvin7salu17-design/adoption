@@ -1,0 +1,988 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --register-primary: #fcc470;
+        --register-secondary: #f5dd72;
+        --register-accent: #f72585;
+        --register-light: #f8f9fa;
+        --register-dark: #212529;
+        --register-success: #4cc9f0;
+        --gradient-register: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        --gradient-accent: linear-gradient(135deg, #7209b7 0%, #f72585 100%);
+    }
+
+    .register-section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.05) 0%, rgba(58, 12, 163, 0.05) 100%);
+        padding: 120px 0 60px;
+    }
+
+    .register-container {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .register-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        min-height: 700px;
+        animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .register-hero {
+        background: var(--gradient-register);
+        padding: 50px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(231, 167, 71, 0.2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .hero-content h1 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+
+    .hero-content p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .features-list li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 1rem;
+    }
+
+    .features-list li i {
+        margin-right: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .register-form-section {
+        padding: 50px 40px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-header {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .form-header h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: var(--gradient-register);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+    }
+
+    .form-header p {
+        color: var(--register-dark);
+        opacity: 0.7;
+        font-size: 1rem;
+    }
+
+    .register-form {
+        flex: 1;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--register-dark);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-label i {
+        color: var(--register-primary);
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 20px;
+        border: 2px solid #e1e5e9;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--register-light);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--register-primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        background: white;
+    }
+
+    .form-control::placeholder {
+        color: #a0aec0;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 42px;
+        background: none;
+        border: none;
+        color: #a0aec0;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: color 0.3s ease;
+    }
+
+    .password-toggle:hover {
+        color: var(--register-primary);
+    }
+
+    .gender-section {
+        margin: 25px 0;
+    }
+
+    .gender-options {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+    }
+
+    .gender-option {
+        flex: 1;
+        position: relative;
+    }
+
+    .gender-option input {
+        display: none;
+    }
+
+    .gender-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px;
+        border: 2px solid #e1e5e9;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: var(--register-light);
+        font-weight: 500;
+        gap: 10px;
+    }
+
+    .gender-label i {
+        font-size: 1.2rem;
+        color: var(--register-primary);
+    }
+
+    .gender-option input:checked + .gender-label {
+        border-color: var(--register-primary);
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--register-primary);
+        font-weight: 600;
+    }
+
+    .alert-messages {
+        margin-bottom: 30px;
+    }
+
+    .alert {
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+        color: #c53030;
+        border-left: 4px solid #c53030;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+        color: #2f855a;
+        border-left: 4px solid #2f855a;
+    }
+
+    .alert i {
+        font-size: 1.2rem;
+    }
+
+    .form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-top: 40px;
+    }
+
+    .btn-register {
+        background: var(--gradient-register);
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+        background: var(--gradient-accent);
+    }
+
+    .btn-register:active {
+        transform: translateY(0);
+    }
+
+    .social-login {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 30px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .social-login p {
+        margin-bottom: 20px;
+        color: var(--register-dark);
+        opacity: 0.7;
+        font-size: 0.95rem;
+    }
+
+    .btn-google {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 14px 30px;
+        background: white;
+        border: 2px solid #e1e5e9;
+        border-radius: 12px;
+        font-weight: 600;
+        color: var(--register-dark);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .btn-google:hover {
+        background: #f8f9fa;
+        border-color: var(--register-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-google img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 0.95rem;
+        color: var(--register-dark);
+    }
+
+    .login-link a {
+        color: var(--register-primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .login-link a:hover {
+        color: var(--register-secondary);
+        text-decoration: underline;
+    }
+
+    .org-register-link {
+        margin-top: 18px;
+        padding: 16px 18px;
+        border: 1px solid rgba(67, 97, 238, 0.12);
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.06), rgba(247, 37, 133, 0.06));
+        text-align: center;
+    }
+
+    .org-register-link a {
+        font-weight: 700;
+        color: #3a56d4;
+        text-decoration: none;
+    }
+
+    .org-register-link a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 992px) {
+        .register-card {
+            grid-template-columns: 1fr;
+            max-width: 700px;
+        }
+        
+        .register-hero {
+            padding: 40px 30px;
+        }
+        
+        .hero-content h1 {
+            font-size: 2.2rem;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .register-section {
+            padding: 100px 15px 40px;
+        }
+        
+        .register-hero,
+        .register-form-section {
+            padding: 30px 20px;
+        }
+        
+        .hero-content h1 {
+            font-size: 1.8rem;
+        }
+        
+        .hero-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        .form-header h2 {
+            font-size: 1.8rem;
+        }
+        
+        .gender-options {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-register,
+        .btn-google {
+            padding: 14px 20px;
+        }
+    }
+
+    .form-error {
+        color: #c53030;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .form-error i {
+        font-size: 0.9rem;
+    }
+
+    .progress-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .progress-step {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #e1e5e9;
+        transition: all 0.3s ease;
+    }
+
+    .progress-step.active {
+        background: var(--register-primary);
+        transform: scale(1.2);
+    }
+</style>
+
+<div class="register-section">
+    <div class="register-container">
+        <div class="register-card">
+            <!-- Hero Section -->
+            <div class="register-hero">
+                <div class="hero-content">
+                    <div class="hero-icon">
+                        <i class="fas fa-hands-holding-child"></i>
+                    </div>
+                    <h1>Join Our Caring Community</h1>
+                    <p>Create your account and become part of a network dedicated to providing love, care, and support to children in need.</p>
+                    
+                    <ul class="features-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Help children find loving homes</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Track adoption & sponsorship requests</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Schedule appointments easily</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>Secure and private profile</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <span>24/7 support and guidance</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="register-form-section">
+                <div class="form-header">
+                    <h2>Create Account</h2>
+                    <p>Fill in your details to join Take Care Foundation</p>
+                </div>
+
+                <div class="org-register-link">
+                    Registering for an institution?
+                    <a href="{% url 'organization_register' %}">Register as Organization</a>
+                </div>
+
+                <!-- Progress Indicator -->
+                <div class="progress-indicator">
+                    <div class="progress-step active"></div>
+                    <div class="progress-step"></div>
+                    <div class="progress-step"></div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div class="alert-messages">
+                    {% for msg in messages %}
+                    {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            <strong>Error!</strong> {{ msg }}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>Success!</strong> {{ msg }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Registration Form -->
+                <form action="" method="post" class="register-form" id="registrationForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-grid">
+                        <!-- First Name -->
+                        <div class="form-group">
+                            <label class="form-label" for="fname">
+                                <i class="fas fa-user"></i>
+                                First Name
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="fname" 
+                                   name="fname" 
+                                   value="{{ form.fname.value|default:'' }}"
+                                   placeholder="Enter your first name"
+                                   required>
+                            <div class="form-error" id="fname-error"></div>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="form-group">
+                            <label class="form-label" for="lname">
+                                <i class="fas fa-user"></i>
+                                Last Name
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="lname" 
+                                   name="lname" 
+                                   value="{{ form.lname.value|default:'' }}"
+                                   placeholder="Enter your last name"
+                                   required>
+                            <div class="form-error" id="lname-error"></div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label class="form-label" for="emailaddress">
+                                <i class="fas fa-envelope"></i>
+                                Email Address
+                            </label>
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="emailaddress" 
+                                   name="emailaddress" 
+                                   value="{{ form.emailaddress.value|default:'' }}"
+                                   placeholder="you@example.com"
+                                   required>
+                            <div class="form-error" id="email-error"></div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="form-group">
+                            <label class="form-label" for="phone_number">
+                                <i class="fas fa-phone"></i>
+                                Phone Number
+                            </label>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="phone_number" 
+                                   name="phone_number" 
+                                   value="{{ form.phone_number.value|default:'' }}"
+                                   placeholder="+91 98765 43210"
+                                   required>
+                            <div class="form-error" id="phone-error"></div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-group">
+                            <label class="form-label" for="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                City / Location
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="location" 
+                                   name="location" 
+                                   value="{{ form.location.value|default:'' }}"
+                                   placeholder="Enter your city"
+                                   required>
+                            <div class="form-error" id="location-error"></div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="form-group full-width">
+                            <label class="form-label" for="addresss">
+                                <i class="fas fa-home"></i>
+                                Full Address
+                            </label>
+                            <textarea class="form-control" 
+                                      id="addresss" 
+                                      name="addresss" 
+                                      placeholder="Enter your complete address"
+                                      rows="3"
+                                      required>{{ form.addresss.value|default:'' }}</textarea>
+                            <div class="form-error" id="address-error"></div>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="form-group">
+                            <label class="form-label" for="username">
+                                <i class="fas fa-at"></i>
+                                Username
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="username" 
+                                   name="username" 
+                                   value="{{ form.username.value|default:'' }}"
+                                   placeholder="Choose a username"
+                                   required>
+                            <div class="form-error" id="username-error"></div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="form-group">
+                            <label class="form-label" for="password1">
+                                <i class="fas fa-lock"></i>
+                                Password
+                            </label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password1" 
+                                   name="password1" 
+                                   placeholder="Create a password"
+                                   required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password1')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="form-error" id="password1-error"></div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="form-group">
+                            <label class="form-label" for="password2">
+                                <i class="fas fa-lock"></i>
+                                Confirm Password
+                            </label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password2" 
+                                   name="password2" 
+                                   placeholder="Confirm your password"
+                                   required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password2')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="form-error" id="password2-error"></div>
+                        </div>
+                    </div>
+
+                    <!-- Gender Selection -->
+                    <div class="gender-section">
+                        <label class="form-label">
+                            <i class="fas fa-venus-mars"></i>
+                            Gender
+                        </label>
+                        <div class="gender-options">
+                            {% for value, label in form.gender.field.choices %}
+                            <div class="gender-option">
+                                <input type="radio" 
+                                       id="gender_{{ value }}" 
+                                       name="gender" 
+                                       value="{{ value }}"
+                                       {% if forloop.first %}checked{% endif %}>
+                                <label for="gender_{{ value }}" class="gender-label">
+                                    {% if value == 'M' %}
+                                    <i class="fas fa-mars"></i> Male
+                                    {% elif value == 'F' %}
+                                    <i class="fas fa-venus"></i> Female
+                                    {% else %}
+                                    <i class="fas fa-user"></i> {{ label }}
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-register">
+                            <i class="fas fa-user-plus"></i>
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Social Login -->
+                <div class="social-login">
+                    <p>Or register with</p>
+                    <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn-google">
+                        <img src="https://www.google.com/favicon.ico" alt="Google">
+                        Continue with Google
+                    </a>
+                </div>
+
+                <!-- Login Link -->
+                <div class="login-link">
+                    Already have an account? <a href="{% url 'login' %}">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password toggle functionality
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const toggleBtn = field.nextElementSibling;
+        const icon = toggleBtn.querySelector('i');
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            field.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Form validation
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Clear previous errors
+        document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+        
+        // Validate fields
+        const fields = [
+            { id: 'fname', errorId: 'fname-error', message: 'First name is required' },
+            { id: 'lname', errorId: 'lname-error', message: 'Last name is required' },
+            { id: 'emailaddress', errorId: 'email-error', message: 'Valid email is required' },
+            { id: 'phone_number', errorId: 'phone-error', message: 'Phone number is required' },
+            { id: 'location', errorId: 'location-error', message: 'Location is required' },
+            { id: 'addresss', errorId: 'address-error', message: 'Address is required' },
+            { id: 'username', errorId: 'username-error', message: 'Username is required' },
+            { id: 'password1', errorId: 'password1-error', message: 'Password is required' },
+            { id: 'password2', errorId: 'password2-error', message: 'Please confirm password' }
+        ];
+        
+        fields.forEach(field => {
+            const input = document.getElementById(field.id);
+            const error = document.getElementById(field.errorId);
+            
+            if (!input.value.trim()) {
+                error.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${field.message}`;
+                input.style.borderColor = '#c53030';
+                isValid = false;
+            } else {
+                input.style.borderColor = '#e1e5e9';
+                
+                // Additional validation for specific fields
+                if (field.id === 'emailaddress') {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(input.value)) {
+                        error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a valid email address';
+                        input.style.borderColor = '#c53030';
+                        isValid = false;
+                    }
+                }
+                
+                if (field.id === 'phone_number') {
+                    const phoneRegex = /^[+]?[0-9\s\-\(\)]{10,15}$/;
+                    if (!phoneRegex.test(input.value.replace(/\s/g, ''))) {
+                        error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a valid phone number';
+                        input.style.borderColor = '#c53030';
+                        isValid = false;
+                    }
+                }
+                
+                if (field.id === 'password1' && input.value.length < 8) {
+                    error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Password must be at least 8 characters';
+                    input.style.borderColor = '#c53030';
+                    isValid = false;
+                }
+                
+                if (field.id === 'password2') {
+                    const password1 = document.getElementById('password1').value;
+                    if (input.value !== password1) {
+                        error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
+                        input.style.borderColor = '#c53030';
+                        isValid = false;
+                    }
+                }
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            
+            // Scroll to first error
+            const firstError = document.querySelector('.form-error:not(:empty)');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    // Real-time validation
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        input.addEventListener('input', function() {
+            const error = this.nextElementSibling?.nextElementSibling;
+            if (error) {
+                error.textContent = '';
+                this.style.borderColor = '#e1e5e9';
+            }
+        });
+    });
+
+    function validateField(input) {
+        const error = input.nextElementSibling?.nextElementSibling;
+        if (!error) return;
+        
+        if (!input.value.trim()) {
+            error.innerHTML = `<i class="fas fa-exclamation-circle"></i> This field is required`;
+            input.style.borderColor = '#c53030';
+            return false;
+        }
+        
+        if (input.id === 'emailaddress') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(input.value)) {
+                error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a valid email';
+                input.style.borderColor = '#c53030';
+                return false;
+            }
+        }
+        
+        if (input.id === 'phone_number') {
+            const phoneRegex = /^[+]?[0-9\s\-\(\)]{10,15}$/;
+            if (!phoneRegex.test(input.value.replace(/\s/g, ''))) {
+                error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a valid phone number';
+                input.style.borderColor = '#c53030';
+                return false;
+            }
+        }
+        
+        if (input.id === 'password1' && input.value.length < 8) {
+            error.innerHTML = '<i class="fas fa-exclamation-circle"></i> At least 8 characters required';
+            input.style.borderColor = '#c53030';
+            return false;
+        }
+        
+        error.textContent = '';
+        input.style.borderColor = '#e1e5e9';
+        return true;
+    }
+
+    // Animate form elements on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const formGroups = document.querySelectorAll('.form-group');
+        formGroups.forEach((group, index) => {
+            group.style.opacity = '0';
+            group.style.transform = 'translateY(20px)';
+            group.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(() => {
+                group.style.opacity = '1';
+                group.style.transform = 'translateY(0)';
+            }, 100 + (index * 50));
+        });
+    });
+</script>
+{% endblock content %}

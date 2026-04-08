@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row" style="min-height:80vh;padding-top:6rem;">
+    
+    <!-- Messages Display -->
+    {% for msg in messages %}
+    <div class="col-12">
+      {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+      <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-exclamation-circle me-3 fs-5"></i>
+          <div>
+            <strong>{{msg}}</strong>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% else %}
+      <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="fas fa-check-circle me-3 fs-5"></i>
+          <div>
+            <strong>{{msg}}</strong>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    
+    <!-- Header Section -->
+    <div class="col-12 mb-5">
+      <div class="text-center">
+        <h1 class="display-5 fw-bold text-primary mb-3">
+          <i class="fas fa-hands-helping me-3"></i>Sponsorship Categories
+        </h1>
+        <p class="lead text-muted mb-4">Choose a sponsorship category that fits your budget and make a meaningful difference</p>
+        
+        <!-- Progress Indicator -->
+        <div class="progress mb-4 mx-auto" style="height: 8px; max-width: 300px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sponsorship Categories -->
+    <div class="col-12">
+      <div class="row justify-content-center g-4">
+        {% for sp in sponsorship_list %}
+        <div class="col-12 col-md-10 col-lg-8">
+          <div class="card sponsorship-card border-0 shadow-lg rounded-4 overflow-hidden mb-4 hover-lift">
+            <div class="card-body p-4 p-lg-5">
+              <div class="row align-items-center">
+                <!-- Category Icon and Name -->
+                <div class="col-md-5 mb-4 mb-md-0">
+                  <div class="d-flex align-items-center">
+                    <div class="icon-wrapper bg-primary text-white rounded-3 p-3 me-4">
+                      <i class="fas fa-{% if 'Education' in sp.sponsor_category %}graduation-cap{% elif 'Medical' in sp.sponsor_category %}stethoscope{% elif 'Food' in sp.sponsor_category %}utensils{% elif 'Clothing' in sp.sponsor_category %}tshirt{% elif 'Shelter' in sp.sponsor_category %}home{% else %}heart{% endif %} fa-2x"></i>
+                    </div>
+                    <div>
+                      <h6 class="text-uppercase text-muted mb-1 fw-bold small">Sponsorship Category</h6>
+                      <h4 class="fw-bold text-primary mb-0">{{sp.sponsor_category}}</h4>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Amount Section -->
+                <div class="col-md-4 mb-4 mb-md-0">
+                  <div class="ps-md-3 border-start border-2 border-light">
+                    <h6 class="text-uppercase text-muted mb-1 fw-bold small">Amount Required</h6>
+                    <div class="d-flex align-items-baseline">
+                      <span class="h2 fw-bold text-success mb-0">₹{{sp.amount}}</span>
+                      <span class="text-muted ms-2">/ year</span>
+                    </div>
+                    <div class="mt-2">
+                      <span class="badge bg-light text-primary rounded-pill px-3 py-1">
+                        <i class="fas fa-rupee-sign me-1"></i>One-time Payment
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Action Button -->
+                <div class="col-md-3 text-center text-md-end">
+                  <a href="{% url 'pay_sp' sp.id %}" class="btn btn-success btn-lg rounded-pill px-4 py-3 shadow-sm">
+                    <i class="fas fa-lock me-2"></i>Pay Now
+                  </a>
+                  <p class="text-muted small mt-2">
+                    <i class="fas fa-shield-alt me-1"></i>Secure Payment
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Impact Information -->
+              <div class="row mt-4 pt-3 border-top border-light">
+                <div class="col-12">
+                  <div class="d-flex flex-wrap align-items-center">
+                    <div class="me-4 mb-2">
+                      <i class="fas fa-users text-primary me-2"></i>
+                      <span class="text-muted">Supports 1 child</span>
+                    </div>
+                    <div class="me-4 mb-2">
+                      <i class="fas fa-calendar-check text-success me-2"></i>
+                      <span class="text-muted">Annual commitment</span>
+                    </div>
+                    <div class="me-4 mb-2">
+                      <i class="fas fa-certificate text-warning me-2"></i>
+                      <span class="text-muted">Tax deductible</span>
+                    </div>
+                    <div class="mb-2">
+                      <i class="fas fa-file-invoice text-info me-2"></i>
+                      <span class="text-muted">Receipt provided</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <!-- Empty State -->
+        <div class="col-12 text-center py-5">
+          <div class="empty-state-card p-5 rounded-4 border-3 border-dashed border-light">
+            <i class="fas fa-inbox fa-4x text-muted mb-4"></i>
+            <h3 class="text-muted mb-3">No Sponsorship Categories Available</h3>
+            <p class="text-muted mb-4">Check back soon for new sponsorship opportunities</p>
+            <a href="{% url 'home' %}" class="btn btn-outline-primary rounded-pill px-4">
+              <i class="fas fa-arrow-left me-2"></i>Back to Home
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <!-- Information Footer -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <div class="info-footer bg-light rounded-4 p-4 border">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h5 class="fw-bold mb-2">
+                  <i class="fas fa-info-circle text-primary me-2"></i>
+                  About Sponsorship Categories
+                </h5>
+                <p class="text-muted mb-0">
+                  Each sponsorship category is carefully designed to address specific needs of children. 
+                  Your contribution directly funds the category you choose.
+                </p>
+              </div>
+              <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <button class="btn btn-outline-primary rounded-pill px-4" type="button" data-bs-toggle="collapse" data-bs-target="#faqSection">
+                  <i class="fas fa-question-circle me-2"></i>FAQ
+                </button>
+              </div>
+            </div>
+            
+            <!-- FAQ Collapse Section -->
+            <div class="collapse mt-4" id="faqSection">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item border-0">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne">
+                          How does category sponsorship work?
+                        </button>
+                      </h2>
+                      <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                          You select a specific need category (education, medical, etc.) and your funds are allocated specifically to that area for the child's benefit.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="accordion" id="faqAccordion2">
+                    <div class="accordion-item border-0">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button bg-light collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwo">
+                          Can I sponsor multiple categories?
+                        </button>
+                      </h2>
+                      <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion2">
+                        <div class="accordion-body">
+                          Yes, you can choose to sponsor multiple categories for the same or different children.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .icon-wrapper {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .sponsorship-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  }
+  
+  .sponsorship-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .sponsorship-card:hover .icon-wrapper {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-5px);
+  }
+  
+  .btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-success:hover {
+    background: linear-gradient(135deg, #157347 0%, #0f5132 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+  }
+  
+  .empty-state-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  }
+  
+  .border-dashed {
+    border-style: dashed !important;
+  }
+  
+  .progress {
+    background-color: #e9ecef;
+  }
+  
+  .progress-bar {
+    background: linear-gradient(90deg, #198754, #20c997);
+  }
+  
+  /* Accordion customization */
+  .accordion-button:not(.collapsed) {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    box-shadow: none;
+  }
+  
+  .accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0,0,0,.125);
+  }
+</style>
+
+<script>
+  // Add animation on scroll
+  document.addEventListener('DOMContentLoaded', function() {
+    // Animate cards on load
+    const cards = document.querySelectorAll('.sponsorship-card');
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 100);
+    });
+    
+    // Add click animation to buttons
+    const buttons = document.querySelectorAll('.btn-success');
+    buttons.forEach(button => {
+      button.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 200);
+      });
+    });
+    
+    // FAQ toggle animation
+    const faqButton = document.querySelector('[data-bs-target="#faqSection"]');
+    if (faqButton) {
+      faqButton.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (this.getAttribute('aria-expanded') === 'true') {
+          icon.className = 'fas fa-times-circle me-2';
+        } else {
+          icon.className = 'fas fa-question-circle me-2';
+        }
+      });
+    }
+  });
+</script>
+{% endblock content %}

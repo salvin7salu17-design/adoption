@@ -1,0 +1,956 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block appoinment %}
+<div class="container-fluid" style="min-height: 100vh; padding-top: 6rem; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <div class="container py-5">
+        <!-- Header Section -->
+        <div class="text-center mx-auto mb-5 pb-4" style="max-width: 800px;">
+            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-semibold px-4 py-2 mb-3 rounded-pill">
+                <i class="bi bi-calendar-check me-2"></i>My Appointments
+            </span>
+            <h1 class="display-5 fw-bold mb-3 text-dark">Scheduled Appointments</h1>
+            <p class="lead text-muted mb-4">
+                Manage your scheduled visits and appointments with children.
+            </p>
+            
+            <!-- Stats Cards -->
+            <div class="row justify-content-center g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                                <i class="bi bi-calendar-event fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-0">{{ appointments.count }}</h2>
+                            <p class="text-muted mb-0">Total Appointments</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-circle bg-success bg-opacity-10 text-success mx-auto mb-3">
+                                <i class="bi bi-check-circle fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-0">
+                                {% with upcoming=0 %}
+                                    {% for appointment in appointments %}
+                                        {% if appointment.is_upcoming %}
+                                            {% with upcoming=upcoming|add:1 %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ upcoming }}
+                                {% endwith %}
+                            </h2>
+                            <p class="text-muted mb-0">Upcoming</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-circle bg-warning bg-opacity-10 text-warning mx-auto mb-3">
+                                <i class="bi bi-clock-history fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-0">
+                                {% with past=0 %}
+                                    {% for appointment in appointments %}
+                                        {% if appointment.is_past %}
+                                            {% with past=past|add:1 %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ past }}
+                                {% endwith %}
+                            </h2>
+                            <p class="text-muted mb-0">Completed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Display -->
+        <div class="container mb-5">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                        alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                             me-2 fs-5"></i>
+                    <strong>{{ msg }}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-center">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary active filter-btn" data-filter="all">
+                                    <i class="bi bi-list-check me-2"></i>All Appointments
+                                </button>
+                                <button type="button" class="btn btn-outline-success filter-btn" data-filter="upcoming">
+                                    <i class="bi bi-calendar-check me-2"></i>Upcoming
+                                </button>
+                                <button type="button" class="btn btn-outline-warning filter-btn" data-filter="past">
+                                    <i class="bi bi-clock-history me-2"></i>Completed
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments Grid -->
+        {% if appointments.exists %}
+        <div class="row g-4" id="appointmentsGrid">
+            {% for appointment in appointments %}
+            <div class="col-lg-6 appointment-card" 
+                 data-status="{% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}upcoming{% else %}past{% endif %}"
+                 data-date="{{ appointment.date|date:'Y-m-d' }}">
+                <div class="card border-0 shadow-lg h-100 overflow-hidden" id="appointment-{{ appointment.id }}">
+                    <!-- Appointment Header -->
+                    <div class="card-header py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-white bg-opacity-20 text-white me-3">
+                                    <i class="bi bi-calendar2-event"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-white mb-0">Appointment #{{ forloop.counter }}</h5>
+                                    <small class="text-white opacity-75">Scheduled Visit</small>
+                                </div>
+                            </div>
+                            <span class="badge {% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}bg-success{% else %}bg-warning{% endif %} 
+                                      px-3 py-2 rounded-pill">
+                                <i class="bi {% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}bi-clock{% else %}bi-check-circle{% endif %} me-1"></i>
+                                {% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}Upcoming{% else %}Completed{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Body -->
+                    <div class="card-body p-4">
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <div class="appointment-detail">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="icon-circle bg-primary bg-opacity-10 text-primary me-3">
+                                            <i class="bi bi-calendar3"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Date</small>
+                                            <span class="fw-bold fs-5">{{ appointment.date|date:"F d, Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="appointment-detail">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="icon-circle bg-success bg-opacity-10 text-success me-3">
+                                            <i class="bi bi-clock"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Time</small>
+                                            <span class="fw-bold fs-5">{{ appointment.time }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Child Information -->
+                        <div class="child-info mb-4">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-person-circle me-2"></i>Child Information
+                            </h6>
+                            <div class="d-flex align-items-start">
+                                {% if appointment.child.image %}
+                                <img src="{{ appointment.child.image.url }}" 
+                                     class="rounded-circle me-3" 
+                                     alt="{{ appointment.child.name }}"
+                                     width="60" 
+                                     height="60"
+                                     style="object-fit: cover;">
+                                {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="bi bi-person-circle text-muted fs-4"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="fw-bold mb-1">{{ appointment.child.name }}</h5>
+                                    <p class="text-muted mb-1">
+                                        <i class="bi bi-gender-ambiguous me-1"></i>
+                                        {{ appointment.child.gender|title }} • {{ appointment.child.age }} years
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-building me-1"></i>
+                                        Child ID: #CH{{ appointment.child.id|stringformat:"04d" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Information -->
+                        <div class="organization-info mb-4">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-building me-2"></i>Organization Details
+                            </h6>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                                    <i class="bi bi-house-heart"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ appointment.child.organization.name }}</h6>
+                                    <p class="text-muted mb-0">{{ appointment.child.organization.address|default:"Address not specified" }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Details -->
+                        <div class="appointment-details mb-4">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-info-circle me-2"></i>Appointment Details
+                            </h6>
+                            <div class="row g-3">
+                                {% if appointment.purpose %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <i class="bi bi-flag text-primary me-2"></i>
+                                        <span class="fw-semibold">Purpose:</span>
+                                        <span class="text-dark">{{ appointment.purpose }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if appointment.duration %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <i class="bi bi-hourglass text-primary me-2"></i>
+                                        <span class="fw-semibold">Duration:</span>
+                                        <span class="text-dark">{{ appointment.duration }} minutes</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if appointment.number_of_people %}
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <i class="bi bi-people text-primary me-2"></i>
+                                        <span class="fw-semibold">Attendees:</span>
+                                        <span class="text-dark">{{ appointment.number_of_people }} people</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if appointment.additional_notes %}
+                            <div class="mt-3">
+                                <div class="detail-item">
+                                    <i class="bi bi-chat-left-text text-primary me-2"></i>
+                                    <span class="fw-semibold">Notes:</span>
+                                    <span class="text-dark">{{ appointment.additional_notes }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock-history me-1"></i>
+                                    Created {{ appointment.created_at|timesince }} ago
+                                </small>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" 
+                                        class="btn btn-outline-danger btn-sm delete-appointment-btn"
+                                        data-appointment-id="{{ appointment.id }}"
+                                        data-appointment-date="{{ appointment.date|date:'F d, Y' }}"
+                                        data-appointment-time="{{ appointment.time }}"
+                                        data-appointment-child="{{ appointment.child.name }}"
+                                        data-toggle="tooltip" 
+                                        title="Cancel Appointment">
+                                    <i class="bi bi-trash me-1"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#detailsModal{{ appointment.id }}">
+                                    <i class="bi bi-eye me-1"></i>View Details
+                                </button>
+                                {% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}
+                                <button type="button" class="btn btn-outline-success btn-sm remind-btn"
+                                        data-date="{{ appointment.date|date:'F d, Y' }}"
+                                        data-time="{{ appointment.time }}">
+                                    <i class="bi bi-bell me-1"></i>Remind Me
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Modal -->
+                <div class="modal fade" id="detailsModal{{ appointment.id }}" tabindex="-1" 
+                     aria-labelledby="detailsModalLabel{{ appointment.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <h5 class="modal-title text-white" id="detailsModalLabel{{ appointment.id }}">
+                                    <i class="bi bi-calendar2-check me-2"></i>Appointment Details
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-4 text-center mb-4">
+                                        {% if appointment.child.image %}
+                                        <img src="{{ appointment.child.image.url }}" 
+                                             class="rounded-circle mb-3" 
+                                             alt="{{ appointment.child.name }}"
+                                             width="120" 
+                                             height="120"
+                                             style="object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3"
+                                             style="width: 120px; height: 120px;">
+                                            <i class="bi bi-person-circle text-muted" style="font-size: 3rem;"></i>
+                                        </div>
+                                        {% endif %}
+                                        <h5 class="fw-bold">{{ appointment.child.name }}</h5>
+                                        <p class="text-muted">{{ appointment.child.age }} years • {{ appointment.child.gender|title }}</p>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h6 class="fw-semibold text-primary mb-3">Appointment Information</h6>
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <small class="text-muted d-block">Date</small>
+                                                <span class="fw-bold">{{ appointment.date|date:"F d, Y" }}</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <small class="text-muted d-block">Time</small>
+                                                <span class="fw-bold">{{ appointment.time }}</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <small class="text-muted d-block">Organization</small>
+                                                <span class="fw-bold">{{ appointment.child.organization.name }}</span>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <small class="text-muted d-block">Status</small>
+                                                <span class="badge {% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}bg-success{% else %}bg-warning{% endif %}">
+                                                    {% if appointment.date|date:'Y-m-d' >= today|date:'Y-m-d' %}Upcoming{% else %}Completed{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if appointment.additional_notes %}
+                                        <div class="mt-3">
+                                            <h6 class="fw-semibold text-primary mb-2">Additional Notes</h6>
+                                            <div class="alert alert-info">
+                                                {{ appointment.additional_notes }}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="alert alert-warning mt-3">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            Please remember to bring your ID and arrive 15 minutes early for the appointment.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <a href="{% url 'usr_ch_li' appointment.child.organization.id %}" class="btn btn-primary">
+                                    <i class="bi bi-person-circle me-2"></i>View Child Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-calendar-x text-primary" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-primary mb-3">No Appointments Scheduled</h3>
+                        <p class="lead text-muted mb-4">
+                            You haven't scheduled any appointments yet. Browse children and schedule your first visit.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-search me-2"></i>Browse Children
+                            </a>
+                            <a href="#" class="btn btn-outline-primary btn-lg px-5">
+                                <i class="bi bi-question-circle me-2"></i>How to Schedule
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Call to Action -->
+        {% if appointments.exists %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body text-white text-center p-5">
+                        <h2 class="display-6 fw-bold mb-3">Need to Schedule More?</h2>
+                        <p class="lead mb-4 opacity-75">
+                            Your visits make a difference in children's lives. Consider scheduling more appointments to build stronger connections.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="{% url 'home' %}" class="btn btn-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-plus-circle me-2"></i>Schedule New Visit
+                            </a>
+                            <button class="btn btn-outline-light btn-lg px-5 fw-semibold" onclick="downloadAppointments()">
+                                <i class="bi bi-download me-2"></i>Download Schedule
+                            </button>
+                            <button class="btn btn-outline-light btn-lg px-5 fw-semibold" onclick="printAppointments()">
+                                <i class="bi bi-printer me-2"></i>Print Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Cancel Appointment
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this appointment?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Appointment Details:</strong>
+                    <div id="appointmentDetails"></div>
+                </div>
+                <p class="text-muted small">This action cannot be undone. The appointment will be permanently removed from your schedule.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Appointment</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .detail-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .child-info {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .organization-info {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .appointment-detail {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e1e5eb;
+    }
+
+    .btn-group .btn {
+        border-radius: 8px !important;
+    }
+
+    .btn-group .btn:first-child {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    .btn-group .btn:last-child {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+
+    /* Animation for cards */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .appointment-card {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .appointment-card:nth-child(1) { animation-delay: 0.1s; }
+    .appointment-card:nth-child(2) { animation-delay: 0.2s; }
+    .appointment-card:nth-child(3) { animation-delay: 0.3s; }
+    .appointment-card:nth-child(4) { animation-delay: 0.4s; }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        .modal-dialog {
+            margin: 10px;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            border-radius: 8px !important;
+            margin-bottom: 5px;
+        }
+        
+        .btn-group .btn:first-child,
+        .btn-group .btn:last-child {
+            border-radius: 8px !important;
+        }
+        
+        .d-flex.justify-content-center.gap-3 {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .d-flex.justify-content-center.gap-3 .btn {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 10px;
+        }
+        
+        .filter-btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+    }
+
+    /* Gradient text for header */
+    .display-5 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Status badges */
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    /* Hover effects for buttons */
+    .btn-outline-primary:hover {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #1cc88a;
+        color: white;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #e74a3b;
+        color: white;
+    }
+
+    /* Fade out animation for deleted cards */
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    }
+
+    .fade-out {
+        animation: fadeOut 0.5s ease-out forwards;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get today's date for comparison
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const appointmentCards = document.querySelectorAll('.appointment-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                
+                // Show/hide cards based on filter
+                appointmentCards.forEach(card => {
+                    const cardDate = card.getAttribute('data-date');
+                    let status = 'past';
+                    
+                    // Determine if appointment is upcoming or past
+                    if (cardDate >= today) {
+                        status = 'upcoming';
+                    }
+                    
+                    if (filter === 'all' || status === filter) {
+                        card.style.display = 'block';
+                        card.style.animation = 'fadeInUp 0.5s ease-out';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Delete appointment functionality
+        let appointmentToDelete = null;
+        const deleteConfirmationModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+        
+        // Handle delete button clicks
+        document.querySelectorAll('.delete-appointment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                appointmentToDelete = {
+                    id: this.getAttribute('data-appointment-id'),
+                    date: this.getAttribute('data-appointment-date'),
+                    time: this.getAttribute('data-appointment-time'),
+                    child: this.getAttribute('data-appointment-child'),
+                    button: this
+                };
+                
+                // Show appointment details in modal
+                document.getElementById('appointmentDetails').innerHTML = `
+                    <div>Date: ${appointmentToDelete.date}</div>
+                    <div>Time: ${appointmentToDelete.time}</div>
+                    <div>Child: ${appointmentToDelete.child}</div>
+                `;
+                
+                // Show confirmation modal
+                deleteConfirmationModal.show();
+            });
+        });
+
+        // Handle confirm delete
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (appointmentToDelete) {
+                const deleteUrl = `/user/appoinment/delete/${appointmentToDelete.id}/`;
+                
+                // Show loading state on the button
+                appointmentToDelete.button.classList.add('btn-loading');
+                appointmentToDelete.button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Canceling...';
+                appointmentToDelete.button.disabled = true;
+                
+                // Make the delete request
+                fetch(deleteUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Animate card removal
+                        const appointmentCard = document.getElementById(`appointment-${appointmentToDelete.id}`);
+                        if (appointmentCard) {
+                            appointmentCard.classList.add('fade-out');
+                            setTimeout(() => {
+                                appointmentCard.remove();
+                                
+                                // Check if any appointments are left
+                                const remainingCards = document.querySelectorAll('.appointment-card');
+                                if (remainingCards.length === 0) {
+                                    showEmptyState();
+                                }
+                                
+                                // Update appointment count
+                                updateAppointmentCount();
+                                
+                                // Show success message
+                                showSuccessMessage('Appointment cancelled successfully!');
+                            }, 500);
+                        }
+                        
+                        // Close the modal
+                        deleteConfirmationModal.hide();
+                        
+                        // Enable appointment scheduling for this child
+                        enableAppointmentScheduling(appointmentToDelete.child_id);
+                    } else {
+                        throw new Error('Failed to delete appointment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting appointment. Please try again.');
+                    
+                    // Reset button state
+                    appointmentToDelete.button.classList.remove('btn-loading');
+                    appointmentToDelete.button.innerHTML = '<i class="bi bi-trash me-1"></i>Cancel';
+                    appointmentToDelete.button.disabled = false;
+                });
+            }
+        });
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Function to update appointment count
+        function updateAppointmentCount() {
+            const appointmentCount = document.querySelectorAll('.appointment-card').length;
+            document.querySelectorAll('.card-body.text-center .fw-bold.text-dark')[0].textContent = appointmentCount;
+            
+            // Update upcoming count
+            let upcomingCount = 0;
+            document.querySelectorAll('.appointment-card').forEach(card => {
+                if (card.getAttribute('data-date') >= today) {
+                    upcomingCount++;
+                }
+            });
+            
+            // Update past count
+            const pastCount = appointmentCount - upcomingCount;
+            
+            // Update the stats (you might need to adjust these selectors based on your HTML structure)
+            const upcomingElement = document.querySelectorAll('.card-body.text-center .fw-bold.text-dark')[1];
+            const pastElement = document.querySelectorAll('.card-body.text-center .fw-bold.text-dark')[2];
+            
+            if (upcomingElement) upcomingElement.textContent = upcomingCount;
+            if (pastElement) pastElement.textContent = pastCount;
+        }
+
+        // Function to show empty state
+        function showEmptyState() {
+            const appointmentsGrid = document.getElementById('appointmentsGrid');
+            appointmentsGrid.innerHTML = `
+                <div class="col-12">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-calendar-x text-primary" style="font-size: 4rem;"></i>
+                            </div>
+                            <h3 class="text-primary mb-3">No Appointments Scheduled</h3>
+                            <p class="lead text-muted mb-4">
+                                You haven't scheduled any appointments yet. Browse children and schedule your first visit.
+                            </p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-5">
+                                    <i class="bi bi-search me-2"></i>Browse Children
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-lg px-5">
+                                    <i class="bi bi-question-circle me-2"></i>How to Schedule
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to show success message
+        function showSuccessMessage(message) {
+            // Create success message alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show shadow-sm';
+            alertDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle me-2 fs-5"></i>
+                    <strong>${message}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Insert at the beginning of the messages container
+            const messagesContainer = document.querySelector('.container.mb-5');
+            if (messagesContainer) {
+                messagesContainer.prepend(alertDiv);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            }
+        }
+
+        // Function to enable appointment scheduling for a child
+        function enableAppointmentScheduling(childId) {
+            // This would typically update the child list page
+            // For now, we'll just log it
+            console.log(`Appointment scheduling enabled for child ID: ${childId}`);
+            
+            // You could also make an AJAX call to update the child list page
+            // or use WebSockets for real-time updates
+        }
+
+        // Remind me functionality
+        document.querySelectorAll('.remind-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const date = this.getAttribute('data-date');
+                const time = this.getAttribute('data-time');
+                
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Appointment Reminder', {
+                        body: `You have an appointment on ${date} at ${time}`,
+                        icon: '/static/favicon.ico'
+                    });
+                } else if ('Notification' in window && Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            new Notification('Appointment Reminder', {
+                                body: `You have an appointment on ${date} at ${time}`,
+                                icon: '/static/favicon.ico'
+                            });
+                        }
+                    });
+                }
+                
+                alert(`Reminder set for appointment on ${date} at ${time}`);
+            });
+        });
+
+        // Download appointments functionality
+        window.downloadAppointments = function() {
+            alert('Appointment schedule download feature coming soon!');
+        };
+
+        // Print appointments functionality
+        window.printAppointments = function() {
+            window.print();
+        };
+
+        // Add today's date highlight
+        appointmentCards.forEach(card => {
+            const appointmentDate = card.getAttribute('data-date');
+            if (appointmentDate === today) {
+                card.querySelector('.card').style.border = '2px solid #4e73df';
+                card.querySelector('.card-header').innerHTML += 
+                    '<span class="badge bg-warning ms-2"><i class="bi bi-star-fill me-1"></i>Today</span>';
+            }
+        });
+    });
+
+    // Loading animation for buttons
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+
+{% endblock appoinment %}

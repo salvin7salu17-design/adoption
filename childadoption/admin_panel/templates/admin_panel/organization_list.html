@@ -1,0 +1,842 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Organizations Management{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-building mr-2"></i>Organizations Management
+{% endblock %}
+
+{% block content %}
+<!-- Action Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <div class="d-flex align-items-center mb-2 mb-sm-0">
+        <div class="btn-group mr-2">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                <i class="fas fa-filter mr-1"></i>Filter
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">All Organizations</a>
+                <a class="dropdown-item" href="#">Verified</a>
+                <a class="dropdown-item" href="#">Pending Verification</a>
+                <a class="dropdown-item" href="#">Suspended</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Recently Added</a>
+                <a class="dropdown-item" href="#">Most Active</a>
+            </div>
+        </div>
+        <div class="btn-group mr-2">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                <i class="fas fa-sort mr-1"></i>Sort By
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">Organization Name</a>
+                <a class="dropdown-item" href="#">Verification Date</a>
+                <a class="dropdown-item" href="#">Number of Children</a>
+                <a class="dropdown-item" href="#">Location</a>
+            </div>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-toggle="collapse" data-target="#advancedFilters">
+            <i class="fas fa-sliders-h mr-1"></i>Advanced
+        </button>
+    </div>
+    <div class="d-flex">
+        <div class="input-group mr-2" style="width: 280px;">
+            <input type="text" class="form-control form-control-sm" placeholder="Search organizations..." id="orgSearch">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary btn-sm" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addOrganizationModal">
+            <i class="fas fa-plus-circle mr-1"></i>Add Organization
+        </button>
+    </div>
+</div>
+
+<!-- Advanced Filters Collapse -->
+<div class="collapse mb-4" id="advancedFilters">
+    <div class="card card-body bg-light">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Country</label>
+                    <select class="form-control form-control-sm">
+                        <option>All Countries</option>
+                        <option>United States</option>
+                        <option>United Kingdom</option>
+                        <option>Canada</option>
+                        <option>Australia</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Verification Status</label>
+                    <select class="form-control form-control-sm">
+                        <option>All</option>
+                        <option>Verified</option>
+                        <option>Pending</option>
+                        <option>Rejected</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Date Range</label>
+                    <select class="form-control form-control-sm">
+                        <option>All Time</option>
+                        <option>Last 30 Days</option>
+                        <option>Last 90 Days</option>
+                        <option>This Year</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Min. Children</label>
+                    <input type="number" class="form-control form-control-sm" placeholder="0">
+                </div>
+            </div>
+        </div>
+        <div class="text-right mt-2">
+            <button class="btn btn-sm btn-primary">Apply Filters</button>
+            <button class="btn btn-sm btn-outline-secondary">Reset</button>
+        </div>
+    </div>
+</div>
+
+<!-- Organizations Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-primary-soft">
+                <i class="fas fa-building text-primary"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Total Organizations</span>
+                <span class="stats-value">{{ orgs|length }}</span>
+                <span class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i> +12%
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-success-soft">
+                <i class="fas fa-check-circle text-success"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Verified</span>
+                <span class="stats-value">{{ verified_count|default:'0' }}</span>
+                <span class="stats-trend positive">
+                    <i class="fas fa-check"></i> {{ verified_percent|default:'0' }}%
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-warning-soft">
+                <i class="fas fa-clock text-warning"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Pending Review</span>
+                <span class="stats-value">{{ pending_count|default:'0' }}</span>
+                <span class="stats-trend neutral">
+                    <i class="fas fa-hourglass-half"></i> Awaiting
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-info-soft">
+                <i class="fas fa-child text-info"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Total Children</span>
+                <span class="stats-value">{{ total_children|default:'0' }}</span>
+                <span class="stats-trend">
+                    <i class="fas fa-users"></i> Under care
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Organizations Table -->
+<div class="table-container">
+    <table class="table table-hover" id="organizationsTable">
+        <thead>
+            <tr>
+                <th width="50">ID</th>
+                <th width="50">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="selectAll">
+                        <label class="custom-control-label" for="selectAll"></label>
+                    </div>
+                </th>
+                <th>Organization</th>
+                <th>Contact Info</th>
+                <th>Location</th>
+                <th>Children</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th width="140">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in orgs %}
+            <tr>
+                <td class="font-weight-bold text-muted">#{{ o.id }}</td>
+                <td>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input org-checkbox" id="org_{{ o.id }}" value="{{ o.id }}">
+                        <label class="custom-control-label" for="org_{{ o.id }}"></label>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="org-logo mr-2">
+                            {% if o.logo %}
+                                <img src="{{ o.logo.url }}" alt="{{ o.name }}" class="rounded-circle" width="40" height="40">
+                            {% else %}
+                                <div class="org-logo-placeholder">
+                                    {{ o.name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="font-weight-bold">{{ o.name }}</div>
+                            <small class="text-muted">
+                                <i class="fas fa-user-tie mr-1"></i>{{ o.contact_person|default:'No contact person' }}
+                            </small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="contact-info">
+                        <div><i class="fas fa-envelope text-muted mr-1 small"></i> {{ o.user.email|truncatechars:20 }}</div>
+                        <div><i class="fas fa-phone text-muted mr-1 small"></i> {{ o.contact_number|default:'N/A' }}</div>
+                    </div>
+                </td>
+                <td>
+                    <span class="d-inline-block" title="{{ o.address }}">
+                        <i class="fas fa-map-marker-alt text-muted mr-1"></i>
+                        {{ o.city|default:o.address|truncatechars:20 }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="badge badge-info badge-pill">{{ o.children_count|default:'0' }}</span>
+                </td>
+                <td>
+                    {% if o.user.is_organization %}
+                        {% if o.verification_status == 'verified' %}
+                            <span class="status-badge status-verified">
+                                <i class="fas fa-check-circle mr-1"></i>Verified
+                            </span>
+                        {% elif o.verification_status == 'pending' %}
+                            <span class="status-badge status-pending">
+                                <i class="fas fa-clock mr-1"></i>Pending
+                            </span>
+                        {% elif o.verification_status == 'rejected' %}
+                            <span class="status-badge status-rejected">
+                                <i class="fas fa-times-circle mr-1"></i>Rejected
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="fas fa-ban mr-1"></i>Inactive
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="status-badge status-inactive">
+                            <i class="fas fa-ban mr-1"></i>Not Verified
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <small class="text-muted" title="{{ o.created_at|date:'F j, Y' }}">
+                        <i class="far fa-calendar-alt mr-1"></i>{{ o.created_at|date:'M d, Y' }}
+                    </small>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'admin_panel:organization_detail' o.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'admin_panel:organization_edit' o.id %}" class="btn btn-sm btn-outline-secondary" title="Edit Organization">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-success" title="Verify Organization" onclick="verifyOrganization('{{ o.id }}')">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <div class="btn-group" role="group">
+                            <button id="moreActions{{ o.id }}" type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActions{{ o.id }}">
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-pdf mr-2"></i>Generate Report</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-envelope mr-2"></i>Send Email</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-history mr-2"></i>View Activity</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger" href="#" onclick="suspendOrganization('{{ o.id }}'); return false;"><i class="fas fa-ban mr-2"></i>Suspend</a>
+                                <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ o.id }}'); return false;"><i class="fas fa-trash mr-2"></i>Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="delete-org-{{ o.id }}" method="post" action="{% url 'admin_panel:organization_delete' o.id %}" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center py-5">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h5>No Organizations Found</h5>
+                        <p class="text-muted">Get started by adding a new organization to the system.</p>
+                        <button class="btn btn-primary mt-2" data-toggle="modal" data-target="#addOrganizationModal">
+                            <i class="fas fa-plus-circle mr-1"></i>Add Organization
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if orgs.has_other_pages %}
+<nav aria-label="Organization navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if orgs.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ orgs.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+        {% endif %}
+        
+        {% for i in orgs.paginator.page_range %}
+            {% if orgs.number == i %}
+                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if orgs.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ orgs.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Bulk Action Bar -->
+<div class="bulk-action-bar" id="bulkActionBar" style="display: none;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap">
+        <div class="mr-4">
+            <span class="font-weight-bold" id="selectedCount">0</span> organization(s) selected
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-success mr-2" onclick="bulkVerify()">
+                <i class="fas fa-check-circle mr-1"></i>Verify
+            </button>
+            <button class="btn btn-sm btn-outline-warning mr-2" onclick="bulkSuspend()">
+                <i class="fas fa-ban mr-1"></i>Suspend
+            </button>
+            <button class="btn btn-sm btn-outline-primary mr-2" onclick="bulkEmail()">
+                <i class="fas fa-envelope mr-1"></i>Email
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="bulkDelete()">
+                <i class="fas fa-trash mr-1"></i>Delete
+            </button>
+            <button class="btn btn-sm btn-outline-secondary ml-2" onclick="clearSelection()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Organization Modal -->
+<div class="modal fade" id="addOrganizationModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle mr-2"></i>Add New Organization</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Organization Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Enter organization name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" placeholder="Enter email address">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" class="form-control" placeholder="Enter phone number">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Website</label>
+                                <input type="url" class="form-control" placeholder="Enter website URL">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <textarea class="form-control" rows="2" placeholder="Enter full address"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" class="form-control" placeholder="City">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>State/Province</label>
+                                <input type="text" class="form-control" placeholder="State/Province">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Country</label>
+                                <select class="form-control">
+                                    <option>Select Country</option>
+                                    <option>United States</option>
+                                    <option>United Kingdom</option>
+                                    <option>Canada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Contact Person</label>
+                                <input type="text" class="form-control" placeholder="Full name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Registration Number</label>
+                                <input type="text" class="form-control" placeholder="Official registration number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Organization Logo</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="orgLogo">
+                            <label class="custom-file-label" for="orgLogo">Choose file</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Add Organization</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stats Cards */
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.stats-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-right: 15px;
+}
+
+.stats-details {
+    flex: 1;
+}
+
+.stats-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-value {
+    display: inline-block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.2;
+    margin-right: 8px;
+}
+
+.stats-trend {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.stats-trend.positive {
+    background: rgba(28, 200, 138, 0.1);
+    color: #1cc88a;
+}
+
+.stats-trend.neutral {
+    background: rgba(246, 194, 62, 0.1);
+    color: #f6c23e;
+}
+
+.stats-trend.negative {
+    background: rgba(231, 74, 59, 0.1);
+    color: #e74a3b;
+}
+
+/* Organization Logo */
+.org-logo-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4e73df, #6f8ae0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.status-verified {
+    background: rgba(28, 200, 138, 0.1);
+    color: #1cc88a;
+}
+
+.status-pending {
+    background: rgba(246, 194, 62, 0.1);
+    color: #f6c23e;
+}
+
+.status-rejected {
+    background: rgba(231, 74, 59, 0.1);
+    color: #e74a3b;
+}
+
+.status-inactive {
+    background: rgba(133, 135, 150, 0.1);
+    color: #858796;
+}
+
+/* Contact Info */
+.contact-info {
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.contact-info i {
+    width: 18px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    background: #f8f9fc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.5rem;
+    color: #4e73df;
+}
+
+/* Bulk Action Bar */
+.bulk-action-bar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e0e0e0;
+    z-index: 1000;
+    animation: slideUp 0.3s ease;
+    min-width: 500px;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Table Enhancements */
+.table tbody tr {
+    transition: all 0.2s;
+}
+
+.table tbody tr:hover {
+    background: #f8f9fc;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: 15px;
+    }
+    
+    .bulk-action-bar {
+        min-width: 90%;
+        left: 5%;
+        transform: none;
+        border-radius: 12px;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* Custom File Input */
+.custom-file-label::after {
+    content: "Browse";
+}
+
+/* Modal Enhancements */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    border-bottom: 1px solid #edf2f7;
+    background: #f8f9fc;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #edf2f7;
+    background: #f8f9fc;
+    border-radius: 0 0 15px 15px;
+}
+
+/* Tooltip Styles */
+[title] {
+    cursor: help;
+}
+</style>
+
+<script>
+// Select All functionality
+document.getElementById('selectAll').addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.org-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = e.target.checked;
+    });
+    updateBulkActionBar();
+});
+
+// Individual checkbox change
+document.querySelectorAll('.org-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        updateBulkActionBar();
+        updateSelectAll();
+    });
+});
+
+// Update select all checkbox
+function updateSelectAll() {
+    const checkboxes = document.querySelectorAll('.org-checkbox');
+    const selectAll = document.getElementById('selectAll');
+    const checkedCount = document.querySelectorAll('.org-checkbox:checked').length;
+    
+    if (checkedCount === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    } else if (checkedCount === checkboxes.length) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else {
+        selectAll.indeterminate = true;
+    }
+}
+
+// Update bulk action bar
+function updateBulkActionBar() {
+    const selected = document.querySelectorAll('.org-checkbox:checked');
+    const bulkBar = document.getElementById('bulkActionBar');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selected.length > 0) {
+        selectedCount.textContent = selected.length;
+        bulkBar.style.display = 'block';
+    } else {
+        bulkBar.style.display = 'none';
+    }
+}
+
+// Clear selection
+function clearSelection() {
+    document.querySelectorAll('.org-checkbox:checked').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('selectAll').checked = false;
+    document.getElementById('selectAll').indeterminate = false;
+    updateBulkActionBar();
+}
+
+// Search functionality
+document.getElementById('orgSearch').addEventListener('keyup', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const tableRows = document.querySelectorAll('#organizationsTable tbody tr');
+    
+    tableRows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
+        
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Organization actions
+function verifyOrganization(orgId) {
+    if (confirm('Verify this organization? They will gain full access to platform features.')) {
+        console.log('Verifying organization:', orgId);
+        // Add your verification logic here
+    }
+}
+
+function suspendOrganization(orgId) {
+    if (confirm('Suspend this organization? They will lose access until reinstated.')) {
+        console.log('Suspending organization:', orgId);
+        // Add your suspension logic here
+    }
+}
+
+function confirmDelete(orgId) {
+    if (confirm('Are you sure you want to delete this organization? This action cannot be undone and will remove all associated data.')) {
+        const form = document.getElementById(`delete-org-${orgId}`);
+        if (form) {
+            form.submit();
+        }
+    }
+}
+
+// Bulk actions
+function bulkVerify() {
+    const selected = Array.from(document.querySelectorAll('.org-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0 && confirm(`Verify ${selected.length} organization(s)?`)) {
+        console.log('Bulk verify:', selected);
+    }
+}
+
+function bulkSuspend() {
+    const selected = Array.from(document.querySelectorAll('.org-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0 && confirm(`Suspend ${selected.length} organization(s)?`)) {
+        console.log('Bulk suspend:', selected);
+    }
+}
+
+function bulkEmail() {
+    const selected = Array.from(document.querySelectorAll('.org-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0) {
+        console.log('Bulk email:', selected);
+        // Open email modal or redirect
+    }
+}
+
+function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.org-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0 && confirm(`Are you sure you want to delete ${selected.length} organization(s)? This action cannot be undone.`)) {
+        console.log('Bulk delete:', selected);
+    }
+}
+
+// Update file input label
+$('.custom-file-input').on('change', function() {
+    let fileName = $(this).val().split('\\').pop();
+    $(this).next('.custom-file-label').html(fileName);
+});
+</script>
+{% endblock %}

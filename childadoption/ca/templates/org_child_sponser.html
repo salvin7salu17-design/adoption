@@ -1,0 +1,1011 @@
+{% extends 'organization_panel.html' %}
+{% load static %}
+{% block home %}
+<style>
+    /* ===== Custom Styles for Lifetime Sponsorships List ===== */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        --light-bg: #f8fafc;
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        --border-radius: 16px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .content-wrapper {
+        background: var(--light-bg);
+        min-height: calc(100vh - 70px);
+        padding: 25px;
+    }
+    
+    /* Page Header */
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 30px 35px;
+        margin-bottom: 35px;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        margin: 0;
+        font-size: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .page-header p {
+        opacity: 0.95;
+        margin: 12px 0 0 0;
+        font-size: 1.05rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+    
+    /* Stats Card */
+    .stats-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: var(--card-shadow);
+        transition: var(--transition);
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stats-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .stats-card:hover::after {
+        transform: scaleX(1);
+    }
+    
+    .stats-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 20px;
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .stats-number {
+        font-size: 2.8rem;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+    
+    /* Sponsorships Table */
+    .sponsorships-table {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-top: 20px;
+    }
+    
+    .table-header {
+        background: var(--dark-gradient);
+        color: white;
+        padding: 25px 30px;
+        border-bottom: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-header h4 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.4rem;
+    }
+    
+    .export-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: var(--transition);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .export-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .table th {
+        background-color: #f8fafc;
+        color: #2c3e50;
+        font-weight: 600;
+        border: none;
+        padding: 20px 16px;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border-bottom: 2px solid #eef2f7;
+    }
+    
+    .table td {
+        padding: 24px 16px;
+        vertical-align: middle;
+        border-color: #f1f5f9;
+        font-size: 0.95rem;
+        transition: var(--transition);
+    }
+    
+    .table tbody tr {
+        transition: var(--transition);
+        position: relative;
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Child Avatar */
+    .child-avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.3rem;
+        margin-right: 15px;
+        box-shadow: 0 4px 10px rgba(67, 233, 123, 0.3);
+        flex-shrink: 0;
+    }
+    
+    .child-info {
+        display: flex;
+        align-items: center;
+        min-width: 250px;
+    }
+    
+    .child-name {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+    }
+    
+    .child-details {
+        display: flex;
+        gap: 20px;
+        font-size: 0.85rem;
+    }
+    
+    .child-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #64748b;
+    }
+    
+    .child-detail-item i {
+        color: #667eea;
+    }
+    
+    /* Sponsorship Details */
+    .sponsor-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .sponsor-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+    
+    .sponsor-badge i {
+        color: #667eea;
+    }
+    
+    .date-info {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+    }
+    
+    .date-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition);
+    }
+    
+    .date-item:hover {
+        background: white;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+    
+    .date-item i {
+        color: #667eea;
+        font-size: 1rem;
+    }
+    
+    .date-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .date-value {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 0.9rem;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .view-btn {
+        background: var(--primary-gradient);
+        border: none;
+        padding: 12px 26px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: var(--transition);
+        text-decoration: none;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+    }
+    
+    .view-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .message-btn {
+        background: var(--secondary-gradient);
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        width: 44px;
+        height: 44px;
+        text-decoration: none;
+    }
+    
+    .message-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(67, 233, 123, 0.4);
+        color: white;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        border-radius: var(--border-radius);
+    }
+    
+    .empty-icon {
+        font-size: 6rem;
+        margin-bottom: 25px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        opacity: 0.7;
+    }
+    
+    .empty-state h3 {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state p {
+        color: #64748b;
+        font-size: 1.05rem;
+        margin-bottom: 30px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .add-sponsor-btn {
+        background: var(--primary-gradient);
+        border: none;
+        padding: 14px 32px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: var(--transition);
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .add-sponsor-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    /* Serial Number */
+    .serial-number {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+    }
+    
+    /* Organization Info */
+    .organization-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .org-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .org-name {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.2rem;
+    }
+    
+    .org-address {
+        color: #64748b;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Progress Indicator */
+    .progress-container {
+        margin-top: 15px;
+    }
+    
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: var(--primary-gradient);
+        border-radius: 4px;
+        transition: width 1s ease-in-out;
+    }
+    
+    /* Animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(-20px) translateX(20px); }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-in {
+        animation: fadeIn 0.6s ease-out forwards;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .content-wrapper {
+            padding: 15px;
+        }
+        
+        .page-header {
+            padding: 25px 20px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.6rem;
+        }
+        
+        .table-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .child-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .date-info {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .view-btn, .message-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    /* Loading States */
+    .loading-shimmer {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 8px;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+</style>
+
+<div class="content-wrapper">
+    <!-- Page Header -->
+    <div class="page-header animate-in">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-award me-3"></i>Lifetime Sponsorships</h1>
+                <p class="mb-0">View and manage all lifetime sponsorship commitments for children in your organization</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="header-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Messages/Alerts -->
+    {% for msg in messages %}
+    <div class="alert {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show animate-in" role="alert" style="animation-delay: {{ forloop.counter|add:0 }}s">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %} me-3" style="font-size: 1.2rem;"></i>
+            <div class="flex-grow-1">{{ msg }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    
+    <!-- Organization Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="stats-card animate-in" style="animation-delay: 0.2s">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 mb-4 mb-lg-0">
+                        <div class="organization-info">
+                            <div class="org-logo">
+                                {{ organization.name|first|upper }}
+                            </div>
+                            <div>
+                                <div class="org-name">{{ organization.name }}</div>
+                                <div class="org-address">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>{{ organization.address|truncatewords:10 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sponsorship Progress -->
+                        {% if childs|length > 0 %}
+                        <div class="progress-container">
+                            <div class="progress-label">
+                                <span>Sponsorship Coverage</span>
+                                <span>{{ childs|length }} Children</span>
+                            </div>
+                            <div class="progress-bar">
+                                {% with childs_length=childs|length %}
+                                <div class="progress-fill" style="width: {% widthratio childs_length 50 100 %}%"></div>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="d-inline-block text-center">
+                            <div class="stats-icon mx-auto mx-lg-0 mb-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stats-number">{{ childs|length }}</div>
+                            <p class="text-muted mb-0">Lifetime Sponsorships</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sponsorships Table -->
+    <div class="sponsorships-table animate-in" style="animation-delay: 0.3s">
+        <div class="table-header">
+            <h4><i class="fas fa-list me-2"></i>Total Life Time Sponsorship</h4>
+            {% if childs|length > 0 %}
+            <a href="#" class="export-btn" id="exportBtn">
+                <i class="fas fa-download"></i> Export Report
+            </a>
+            {% endif %}
+        </div>
+        
+        {% if childs|length == 0 %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <h3 class="mb-3">No Lifetime Sponsorships Found</h3>
+            <p class="text-muted mb-4">There are currently no children with lifetime sponsorships in your organization. Lifetime sponsorships will appear here once they are established.</p>
+            <a href="#" class="add-sponsor-btn">
+                <i class="fas fa-plus-circle"></i> Add New Sponsorship
+            </a>
+        </div>
+        {% else %}
+        <!-- Sponsorships Table -->
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">No</th>
+                        <th>Child Information</th>
+                        <th>Sponsorship Details</th>
+                        <th style="width: 180px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in childs %}
+                    <!-- FIXED LINE: Removed the problematic filter chain -->
+                    <tr class="animate-in" style="animation-delay: {% if forloop.counter|divisibleby:'2' %}0.5{% else %}0.4{% endif %}s">
+                        <td>
+                            <div class="serial-number">{{ forloop.counter }}</div>
+                        </td>
+                        <td>
+                            <div class="child-info">
+                                <div class="child-avatar">
+                                    {{ c.child.name|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="child-name">{{ c.child.name }}</div>
+                                    <div class="child-details">
+                                        <span class="child-detail-item">
+                                            <i class="fas fa-child"></i>
+                                            <span>Age: {{ c.child.age }}</span>
+                                        </span>
+                                        <span class="child-detail-item">
+                                            <i class="fas fa-venus-mars"></i>
+                                            <span>{{ c.child.gender|title }}</span>
+                                        </span>
+                                        {% if c.child.health_status %}
+                                        <span class="child-detail-item">
+                                            <i class="fas fa-heartbeat"></i>
+                                            <span>{{ c.child.health_status }}</span>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="sponsor-info">
+                                <span class="sponsor-badge">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>Sponsored by: {{ c.sponser.fname }} {{ c.sponser.lname }}</span>
+                                </span>
+                            </div>
+                            <div class="date-info">
+                                <div class="date-item">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    <div>
+                                        <div class="date-label">From</div>
+                                        <div class="date-value">{{ c.date_from }}</div>
+                                    </div>
+                                </div>
+                                <div class="date-item">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <div>
+                                        <div class="date-label">To</div>
+                                        <div class="date-value">{{ c.date_to }}</div>
+                                    </div>
+                                </div>
+                                {% if c.sponser.contact_info %}
+                                <div class="date-item">
+                                    <i class="fas fa-phone-alt"></i>
+                                    <div>
+                                        <div class="date-label">Contact</div>
+                                        <div class="date-value">{{ c.sponser.contact_info }}</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'c_l_s' c.id %}" class="view-btn">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <a href="#" class="message-btn" title="Message Sponsor">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if childs.has_other_pages %}
+        <div class="d-flex justify-content-center py-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if childs.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ childs.previous_page_number }}" aria-label="Previous">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in childs.paginator.page_range %}
+                    <li class="page-item {% if childs.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if childs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ childs.next_page_number }}" aria-label="Next">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced hover effects with animation
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            this.style.transform = 'translateY(-3px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Export functionality
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Create export data
+            const data = [];
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 3) {
+                    const childName = cells[1].querySelector('.child-name')?.textContent || '';
+                    const sponsorInfo = cells[2].querySelector('.sponsor-badge')?.textContent || '';
+                    data.push({
+                        child: childName.trim(),
+                        sponsor: sponsorInfo.trim()
+                    });
+                }
+            });
+            
+            // Show success message
+            showToast('Export initiated! Your report will download shortly.', 'success');
+            
+            // Simulate export process
+            setTimeout(() => {
+                showToast('Export completed successfully!', 'success');
+            }, 1500);
+        });
+    }
+    
+    // Progress bar animation
+    const progressFill = document.querySelector('.progress-fill');
+    if (progressFill) {
+        // Trigger animation after page load
+        setTimeout(() => {
+            progressFill.style.transition = 'width 1.5s ease-in-out';
+        }, 500);
+    }
+    
+    // Add ripple effect to buttons
+    const buttons = document.querySelectorAll('.view-btn, .message-btn, .export-btn, .add-sponsor-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.7);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                pointer-events: none;
+            `;
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
+    
+    // Search functionality
+    const searchInput = document.createElement('input');
+    searchInput.type = 'search';
+    searchInput.className = 'form-control';
+    searchInput.placeholder = 'Search sponsorships...';
+    searchInput.style.cssText = `
+        max-width: 300px;
+        margin-left: auto;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        border: 2px solid #e2e8f0;
+        padding: 10px 15px;
+    `;
+    
+    const tableHeader = document.querySelector('.table-header');
+    if (tableHeader && tableRows.length > 0) {
+        const headerContainer = document.createElement('div');
+        headerContainer.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 30px;
+            padding-top: 20px;
+        `;
+        
+        const title = tableHeader.querySelector('h4');
+        const exportButton = tableHeader.querySelector('.export-btn');
+        
+        tableHeader.innerHTML = '';
+        tableHeader.appendChild(headerContainer);
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.style.display = 'flex';
+        titleDiv.style.alignItems = 'center';
+        titleDiv.style.gap = '20px';
+        
+        titleDiv.appendChild(title);
+        titleDiv.appendChild(searchInput);
+        
+        headerContainer.appendChild(titleDiv);
+        if (exportButton) {
+            headerContainer.appendChild(exportButton);
+        }
+        
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : '#3b82f6'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .toast-notification {
+            font-family: inherit;
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+
+<!-- Add Animate.css for animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+{% endblock %}

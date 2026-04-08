@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block service %}
+<div class="container-fluid" style="min-height: 100vh; padding-top: 6rem; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <div class="container py-5">
+        <!-- Header Section -->
+        <div class="text-center mx-auto mb-5 pb-4" style="max-width: 800px;">
+            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-semibold px-4 py-2 mb-3 rounded-pill">
+                <i class="bi bi-person-circle me-2"></i>My Profile
+            </span>
+            <h1 class="display-5 fw-bold mb-3 text-dark">Personal Information</h1>
+            <p class="lead text-muted mb-4">
+                View and manage your profile information. Keep your details updated for better service.
+            </p>
+        </div>
+
+        <!-- Messages Display -->
+        <div class="container mb-5">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                        alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                             me-2 fs-5"></i>
+                    <strong>{{ msg }}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Profile Content -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <!-- Profile Header -->
+                    <div class="card-header py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-white bg-opacity-20 text-white me-3">
+                                <i class="bi bi-person-fill fs-2"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white mb-1">Profile Details</h4>
+                                <p class="text-white opacity-75 mb-0">Account Information</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Body -->
+                    <div class="card-body p-5">
+                        <!-- User Avatar Section -->
+                        <div class="text-center mb-5">
+                            <div class="position-relative d-inline-block">
+                                <div class="avatar-circle bg-primary bg-gradient text-white d-flex align-items-center justify-content-center"
+                                     style="width: 120px; height: 120px; border-radius: 50%; font-size: 3rem;">
+                                    {{ user.fname|first|upper }}{{ user.lname|first|upper }}
+                                </div>
+                                <div class="position-absolute bottom-0 end-0">
+                                    <span class="badge bg-success px-3 py-2 rounded-pill">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        {% if user.is_organization %}Organization{% else %}User{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <h3 class="fw-bold mt-4 mb-1">{{ user.fname }} {{ user.lname }}</h3>
+                            <p class="text-muted">{{ user.emailaddress }}</p>
+                        </div>
+
+                        <!-- Profile Information Grid -->
+                        <div class="row g-4">
+                            <!-- Personal Information -->
+                            <div class="col-md-6">
+                                <div class="profile-section">
+                                    <h5 class="fw-semibold text-primary mb-4 border-bottom pb-2">
+                                        <i class="bi bi-person-vcard me-2"></i>Personal Information
+                                    </h5>
+                                    <div class="profile-detail">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-primary bg-opacity-10 text-primary me-3">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Full Name</small>
+                                                <span class="fw-bold">{{ user.fname }} {{ user.lname }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                                                <i class="bi bi-gender-ambiguous"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Gender</small>
+                                                <span class="fw-bold">{{ user.gender|default:"Not specified" }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-success bg-opacity-10 text-success me-3">
+                                                <i class="bi bi-calendar3"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Account Type</small>
+                                                <span class="fw-bold">
+                                                    {% if user.is_organization %}
+                                                    Organization Account
+                                                    {% else %}
+                                                    Individual Account
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Information -->
+                            <div class="col-md-6">
+                                <div class="profile-section">
+                                    <h5 class="fw-semibold text-primary mb-4 border-bottom pb-2">
+                                        <i class="bi bi-telephone me-2"></i>Contact Information
+                                    </h5>
+                                    <div class="profile-detail">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-warning bg-opacity-10 text-warning me-3">
+                                                <i class="bi bi-envelope"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Email Address</small>
+                                                <span class="fw-bold">{{ user.emailaddress }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-danger bg-opacity-10 text-danger me-3">
+                                                <i class="bi bi-phone"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Phone Number</small>
+                                                <span class="fw-bold">{{ user.phone_number|default:"Not provided" }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="icon-circle bg-secondary bg-opacity-10 text-secondary me-3">
+                                                <i class="bi bi-geo-alt"></i>
+                                            </div>
+                                            <div>
+                                                <small class="text-muted d-block">Location</small>
+                                                <span class="fw-bold">{{ user.location|default:"Not specified" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address Information (Full Width) -->
+                            <div class="col-12">
+                                <div class="profile-section">
+                                    <h5 class="fw-semibold text-primary mb-4 border-bottom pb-2">
+                                        <i class="bi bi-house-door me-2"></i>Address Information
+                                    </h5>
+                                    <div class="address-card">
+                                        <div class="d-flex">
+                                            <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                                                <i class="bi bi-house-heart"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-bold mb-2">Complete Address</h6>
+                                                <p class="text-muted mb-0">
+                                                    {{ user.addresss|default:"Address not provided"|linebreaksbr }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Account Information -->
+                            <div class="col-12">
+                                <div class="profile-section">
+                                    <h5 class="fw-semibold text-primary mb-4 border-bottom pb-2">
+                                        <i class="bi bi-shield-check me-2"></i>Account Details
+                                    </h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="account-stat">
+                                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-2">
+                                                    <i class="bi bi-person-check"></i>
+                                                </div>
+                                                <div class="text-center">
+                                                    <small class="text-muted d-block">Member Since</small>
+                                                    <span class="fw-bold">
+                                                        {{ user.date_joined|date:"M d, Y"|default:"Recent" }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="account-stat">
+                                                <div class="icon-circle bg-success bg-opacity-10 text-success mx-auto mb-2">
+                                                    <i class="bi bi-clock-history"></i>
+                                                </div>
+                                                <div class="text-center">
+                                                    <small class="text-muted d-block">Last Login</small>
+                                                    <span class="fw-bold">
+                                                        {{ user.last_login|date:"M d, Y"|default:"Never" }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="account-stat">
+                                                <div class="icon-circle bg-warning bg-opacity-10 text-warning mx-auto mb-2">
+                                                    <i class="bi bi-star"></i>
+                                                </div>
+                                                <div class="text-center">
+                                                    <small class="text-muted d-block">Account Status</small>
+                                                    <span class="fw-bold text-success">Active</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Profile last updated: {{ user.updated_at|date:"M d, Y"|default:"Recently" }}
+                                </small>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <a href="{% url 'profileedit' user.id %}" class="btn btn-primary px-4">
+                                    <i class="bi bi-pencil-square me-2"></i>Edit Profile
+                                </a>
+                                <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-house me-2"></i>Back to Home
+                                </a>
+                                {% if user.is_organization %}
+                                <a href="{% url 'org' %}" class="btn btn-success px-4">
+                                    <i class="bi bi-building me-2"></i>Organization Panel
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info Cards -->
+                <div class="row mt-4">
+                    {% if user.is_organization %}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="icon-circle bg-success bg-opacity-10 text-success mx-auto mb-3">
+                                    <i class="bi bi-building fs-2"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">Organization Account</h5>
+                                <p class="text-muted small mb-3">
+                                    You have access to organization management features.
+                                </p>
+                                <a href="{% url 'org' %}" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-arrow-right me-1"></i>Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="{% if user.is_organization %}col-md-6{% else %}col-12{% endif %}">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center p-4">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info mx-auto mb-3">
+                                    <i class="bi bi-shield-check fs-2"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">Account Security</h5>
+                                <p class="text-muted small mb-3">
+                                    Keep your profile information updated for security.
+                                </p>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-outline-info btn-sm" onclick="changePassword()">
+                                        <i class="bi bi-key me-1"></i>Change Password
+                                    </button>
+                                    <button class="btn btn-outline-warning btn-sm" onclick="privacySettings()">
+                                        <i class="bi bi-gear me-1"></i>Privacy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="changePasswordModalLabel">
+                    <i class="bi bi-key me-2"></i>Change Password
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Password change feature coming soon. Please contact support for assistance.</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    For security reasons, password changes require additional verification.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="requestPasswordChange()">
+                    <i class="bi bi-envelope me-2"></i>Request Change
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .profile-section {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #e1e5eb;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .profile-section:hover {
+        border-color: #4e73df;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-detail {
+        padding: 0.5rem;
+    }
+
+    .address-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .account-stat {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e1e5eb;
+        transition: all 0.3s ease;
+    }
+
+    .account-stat:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .avatar-circle {
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .avatar-circle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Badge styling */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    /* Gradient text for header */
+    .display-5 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Button hover effects */
+    .btn-primary:hover {
+        background-color: #4e73df;
+        border-color: #4e73df;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .d-flex.gap-3 {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .d-flex.gap-3 .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .profile-section {
+            margin-bottom: 15px;
+        }
+        
+        .avatar-circle {
+            width: 100px !important;
+            height: 100px !important;
+            font-size: 2.5rem !important;
+        }
+    }
+
+    /* Animation for page load */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card, .profile-section, .account-stat {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .profile-section:nth-child(1) { animation-delay: 0.1s; }
+    .profile-section:nth-child(2) { animation-delay: 0.2s; }
+    .account-stat:nth-child(1) { animation-delay: 0.3s; }
+    .account-stat:nth-child(2) { animation-delay: 0.4s; }
+    .account-stat:nth-child(3) { animation-delay: 0.5s; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Add hover effect to profile sections
+        const profileSections = document.querySelectorAll('.profile-section');
+        profileSections.forEach(section => {
+            section.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            section.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add animation to avatar
+        const avatar = document.querySelector('.avatar-circle');
+        if (avatar) {
+            avatar.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1) rotate(5deg)';
+            });
+            
+            avatar.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) rotate(0)';
+            });
+        }
+
+        // Copy email to clipboard
+        const copyEmailBtn = document.getElementById('copyEmailBtn');
+        if (copyEmailBtn) {
+            copyEmailBtn.addEventListener('click', function() {
+                const email = '{{ user.emailaddress }}';
+                navigator.clipboard.writeText(email).then(() => {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="bi bi-check me-1"></i>Copied!';
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-secondary');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-secondary');
+                    }, 2000);
+                });
+            });
+        }
+    });
+
+    // Change password function
+    function changePassword() {
+        const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+        modal.show();
+    }
+
+    // Privacy settings function
+    function privacySettings() {
+        alert('Privacy settings feature coming soon!');
+    }
+
+    // Request password change
+    function requestPasswordChange() {
+        alert('Password change request sent to support team. You will receive an email with instructions.');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+        modal.hide();
+    }
+
+    // Download profile as PDF
+    function downloadProfile() {
+        alert('Profile download feature coming soon!');
+    }
+
+    // Share profile (for verification purposes)
+    function shareProfile() {
+        const profileUrl = window.location.href;
+        const shareText = `My profile information for verification purposes.`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'My Profile',
+                text: shareText,
+                url: profileUrl
+            });
+        } else {
+            navigator.clipboard.writeText(profileUrl).then(() => {
+                alert('Profile URL copied to clipboard!');
+            });
+        }
+    }
+</script>
+{% endblock service %}

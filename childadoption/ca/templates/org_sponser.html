@@ -1,0 +1,643 @@
+{% extends 'organization_panel.html' %}
+{% load static %}
+{% block home %}
+<div class="container-fluid px-4">
+    {% for msg in messages %}
+    {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <strong>{{msg}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% else %}
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>{{msg}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    {% endfor %}
+    
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold text-primary">
+                <i class="fas fa-hands-helping me-2"></i>Sponsorship Applicants
+            </h2>
+            <p class="text-muted mb-0">Manage sponsorship applications for children in your care</p>
+        </div>
+        <button type="button" class="btn btn-primary btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#createSponsorModal">
+            <i class="fas fa-plus-circle me-2"></i>Create New Applicant
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                Total Applicants
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">{{ child_list|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paid Sponsorships Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                Paid Sponsorships
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                <!-- Count paid sponsorships -->
+                                {% with paid_count=0 %}
+                                    {% for c in child_list %}
+                                        {% if c.is_paid %}
+                                            {% widthratio paid_count|add:"1" 1 1 as paid_count %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ paid_count|default:"0" }}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Payments Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                                Pending Payments
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                <!-- Count pending sponsorships -->
+                                {% with pending_count=0 %}
+                                    {% for c in child_list %}
+                                        {% if not c.is_paid %}
+                                            {% widthratio pending_count|add:"1" 1 1 as pending_count %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ pending_count|default:"0" }}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Funds Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                                Total Pending Funds
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                <!-- Calculate total pending amount -->
+                                {% with total_pending=0 %}
+                                    {% for c in child_list %}
+                                        {% if not c.is_paid %}
+                                            {% widthratio total_pending|add:c.amount 1 1 as total_pending %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    ₹{{ total_pending|default:"0" }}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fw-bold text-primary">
+                <i class="fas fa-list-alt me-2"></i>Sponsorship Applicants List
+            </h6>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm active" data-filter="all">All</button>
+                <button type="button" class="btn btn-outline-success btn-sm" data-filter="paid">Paid</button>
+                <button type="button" class="btn btn-outline-warning btn-sm" data-filter="pending">Pending</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="sponsorshipTable" width="100%" cellspacing="0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Child Details</th>
+                            <th scope="col">Sponsorship Details</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in child_list %}
+                        <tr class="sponsor-row" data-status="{% if c.is_paid %}paid{% else %}pending{% endif %}">
+                            <th scope="row" class="align-middle">{{ forloop.counter }}</th>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px; border-radius: 50%;">
+                                            {{ c.child.name|slice:":1"|upper }}
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0 fw-bold">{{ c.child.name }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>{{ c.child.age }} yrs • 
+                                            <i class="fas fa-{% if c.child.gender == 'Male' %}mars{% else %}venus{% endif %} me-1"></i>{{ c.child.gender }} • 
+                                            <i class="fas fa-calendar me-1"></i>Since {{ c.child.since|date:"Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-1">
+                                    <i class="fas fa-{% if c.sponsor_category == 'medical' %}plus-circle{% elif c.sponsor_category == 'education' %}graduation-cap{% elif c.sponsor_category == 'sports' %}futbol{% else %}tshirt{% endif %} me-1"></i>
+                                    {{ c.sponsor_category|title }}
+                                </span>
+                                <br>
+                                <small class="text-muted">Created: {{ c.created_at|date:"d M, Y"|default:"Recently" }}</small>
+                            </td>
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <span class="fs-5 fw-bold text-success">₹{{ c.amount }}</span>
+                                    <small class="ms-2 text-muted">/ sponsorship</small>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                {% if c.is_paid %}
+                                <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                    <i class="fas fa-check-circle me-1"></i>Paid
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                                    <i class="fas fa-clock me-1"></i>Pending
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="View Details" onclick="viewDetails('{{ c.id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="{% url 'del_sp' c.id %}" class="btn btn-outline-danger" 
+                                       data-bs-toggle="tooltip" title="Delete Applicant"
+                                       onclick="return confirmDelete('{{ c.child.name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    {% if not c.is_paid %}
+                                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="tooltip" title="Send Reminder" onclick="sendReminder('{{ c.id }}')">
+                                        <i class="fas fa-bell"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-hands-helping fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">No Sponsorship Applicants Found</h5>
+                                    <p class="text-muted">Create your first sponsorship applicant to get started</p>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSponsorModal">
+                                        <i class="fas fa-plus me-2"></i>Create First Applicant
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination (if needed) -->
+            {% if child_list.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if child_list.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ child_list.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in child_list.paginator.page_range %}
+                    <li class="page-item {% if child_list.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if child_list.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ child_list.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Create Sponsor Modal -->
+<div class="modal fade" id="createSponsorModal" tabindex="-1" aria-labelledby="createSponsorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="createSponsorModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Sponsorship Applicant
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" id="sponsorForm">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <!-- Child Selection -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-child me-1"></i>Select Child
+                            </label>
+                            <select required class="form-select form-select-lg shadow-sm" name="child" 
+                                    aria-label="Select child" id="childSelect">
+                                <option value="" selected disabled>Choose a child...</option>
+                                {% for o in og_childs %}
+                                <option value="{{ o.id }}" data-age="{{ o.age }}" data-gender="{{ o.gender }}">
+                                    {{ o.name }} ({{ o.age }} yrs, {{ o.gender }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose a child who needs sponsorship support</div>
+                        </div>
+                        
+                        <!-- Sponsorship Category -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-tag me-1"></i>Sponsorship Category
+                            </label>
+                            <select required class="form-select form-select-lg shadow-sm" name="sponsor_category" 
+                                    aria-label="Select category" id="categorySelect">
+                                <option value="" selected disabled>Select category...</option>
+                                <option value="medical">
+                                    <i class="fas fa-plus-circle me-1"></i> Medical Support
+                                </option>
+                                <option value="clothings">
+                                    <i class="fas fa-tshirt me-1"></i> Clothing & Essentials
+                                </option>
+                                <option value="education">
+                                    <i class="fas fa-graduation-cap me-1"></i> Education Support
+                                </option>
+                                <option value="sports">
+                                    <i class="fas fa-futbol me-1"></i> Sports & Activities
+                                </option>
+                                <option value="food_and_nutrition">
+                                    <i class="fas fa-utensils me-1"></i> Food & Nutrition
+                                </option>
+                            </select>
+                            <div class="form-text">Select the type of support needed</div>
+                        </div>
+                        
+                        <!-- Amount Input -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-rupee-sign me-1"></i>Sponsorship Amount
+                            </label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-rupee-sign text-muted"></i>
+                                </span>
+                                <input type="number" class="form-control border-start-0" 
+                                       name="amount" placeholder="Enter sponsorship amount" 
+                                       min="100" step="100" required id="amountInput">
+                                <span class="input-group-text bg-light border-start-0">
+                                    .00
+                                </span>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Minimum amount: ₹100. Recommended amounts based on category will be suggested.
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Amount Buttons -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-bolt me-1"></i>Quick Amounts
+                            </label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-primary quick-amount" data-amount="500">
+                                    ₹500
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-amount" data-amount="1000">
+                                    ₹1,000
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-amount" data-amount="2500">
+                                    ₹2,500
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-amount" data-amount="5000">
+                                    ₹5,000
+                                </button>
+                                <button type="button" class="btn btn-outline-primary quick-amount" data-amount="10000">
+                                    ₹10,000
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Section -->
+                        <div class="col-md-12">
+                            <div class="card border-info mt-3" id="previewCard" style="display: none;">
+                                <div class="card-header bg-info-subtle">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-eye me-2"></i>Sponsorship Preview
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1">
+                                                <strong>Child:</strong> 
+                                                <span id="previewChild">Not selected</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <strong>Category:</strong> 
+                                                <span id="previewCategory">Not selected</span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1">
+                                                <strong>Amount:</strong> 
+                                                <span id="previewAmount" class="fw-bold text-success">₹0</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <strong>Estimated Impact:</strong> 
+                                                <span id="previewImpact" class="text-muted">Will help provide essential support</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer border-top-0 pt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="fas fa-save me-2"></i>Create Sponsorship Applicant
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+    
+    .empty-state i {
+        opacity: 0.5;
+    }
+    
+    .badge {
+        font-weight: 500;
+    }
+    
+    .quick-amount:hover {
+        background-color: var(--bs-primary);
+        color: white;
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        border-bottom: 2px solid rgba(0,0,0,0.05);
+    }
+    
+    .form-select:focus, .form-control:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Quick amount buttons
+        document.querySelectorAll('.quick-amount').forEach(button => {
+            button.addEventListener('click', function() {
+                const amount = this.getAttribute('data-amount');
+                document.getElementById('amountInput').value = amount;
+                updatePreview();
+            });
+        });
+        
+        // Update preview when form changes
+        const childSelect = document.getElementById('childSelect');
+        const categorySelect = document.getElementById('categorySelect');
+        const amountInput = document.getElementById('amountInput');
+        
+        [childSelect, categorySelect, amountInput].forEach(element => {
+            if (element) {
+                element.addEventListener('change', updatePreview);
+                element.addEventListener('input', updatePreview);
+            }
+        });
+        
+        function updatePreview() {
+            const previewCard = document.getElementById('previewCard');
+            const previewChild = document.getElementById('previewChild');
+            const previewCategory = document.getElementById('previewCategory');
+            const previewAmount = document.getElementById('previewAmount');
+            const previewImpact = document.getElementById('previewImpact');
+            
+            const selectedChild = childSelect.options[childSelect.selectedIndex];
+            const selectedCategory = categorySelect.options[categorySelect.selectedIndex];
+            const amount = amountInput.value;
+            
+            // Show/hide preview card
+            if (selectedChild?.value || selectedCategory?.value || amount) {
+                previewCard.style.display = 'block';
+            } else {
+                previewCard.style.display = 'none';
+                return;
+            }
+            
+            // Update preview content
+            previewChild.textContent = selectedChild?.value ? selectedChild.text : 'Not selected';
+            previewCategory.textContent = selectedCategory?.value ? 
+                selectedCategory.text.replace(/<[^>]*>/g, '') : 'Not selected';
+            previewAmount.textContent = amount ? `₹${amount}` : '₹0';
+            
+            // Update impact message based on category and amount
+            let impactMessage = 'Will help provide essential support';
+            if (selectedCategory?.value && amount) {
+                const amountNum = parseInt(amount);
+                const impacts = {
+                    'medical': amountNum >= 5000 ? 'Can cover medical treatments' : 'Will help with medical expenses',
+                    'education': amountNum >= 3000 ? 'Can cover school fees and supplies' : 'Will help with educational needs',
+                    'clothings': amountNum >= 2000 ? 'Can provide seasonal clothing sets' : 'Will help with clothing needs',
+                    'sports': amountNum >= 1500 ? 'Can provide sports equipment and training' : 'Will help with sports activities',
+                    'food_and_nutrition': amountNum >= 2500 ? 'Can provide nutritious meals for a month' : 'Will help with food needs'
+                };
+                impactMessage = impacts[selectedCategory.value] || impactMessage;
+            }
+            previewImpact.textContent = impactMessage;
+        }
+        
+        // Form validation
+        const sponsorForm = document.getElementById('sponsorForm');
+        if (sponsorForm) {
+            sponsorForm.addEventListener('submit', function(e) {
+                const amount = parseInt(amountInput.value);
+                if (amount < 100) {
+                    e.preventDefault();
+                    alert('Minimum sponsorship amount is ₹100');
+                    amountInput.focus();
+                }
+            });
+        }
+        
+        // Auto-suggest amounts based on category
+        categorySelect.addEventListener('change', function() {
+            const suggestions = {
+                'medical': '5000',
+                'education': '3000',
+                'clothings': '2000',
+                'sports': '1500',
+                'food_and_nutrition': '2500'
+            };
+            
+            if (suggestions[this.value] && !amountInput.value) {
+                amountInput.value = suggestions[this.value];
+                updatePreview();
+            }
+        });
+        
+        // Filter buttons
+        document.querySelectorAll('[data-filter]').forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                // Update button states
+                document.querySelectorAll('[data-filter]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Filter rows
+                const rows = document.querySelectorAll('.sponsor-row');
+                rows.forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else {
+                        const status = row.getAttribute('data-status');
+                        row.style.display = status === filter ? '' : 'none';
+                    }
+                });
+            });
+        });
+    });
+    
+    function confirmDelete(childName) {
+        return confirm(`Are you sure you want to delete the sponsorship applicant for "${childName}"? This action cannot be undone.`);
+    }
+    
+    function viewDetails(sponsorId) {
+        alert(`View details for sponsor ID: ${sponsorId}`);
+        // Implement AJAX call to fetch and display details
+    }
+    
+    function sendReminder(sponsorId) {
+        if (confirm('Send payment reminder to sponsor?')) {
+            alert(`Reminder sent for sponsor ID: ${sponsorId}`);
+            // Implement AJAX call to send reminder
+        }
+    }
+</script>
+{% endblock %}

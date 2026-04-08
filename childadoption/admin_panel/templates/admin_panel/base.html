@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - {% block title %}{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap & Icons -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- jQuery & Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-dark: #3a56d4;
+            --primary-light: #4895ef;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --info-color: #4895ef;
+            --warning-color: #f72585;
+            --danger-color: #e63946;
+            --dark-bg: #1e1b4b;
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --header-height: 70px;
+            --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            --hover-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles - Enhanced */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(195deg, #1a1f2b 0%, #1e1b4b 100%);
+            color: #fff;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-header p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            color: #a5b4fc;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .sidebar-menu {
+            padding: 20px 15px;
+        }
+
+        .sidebar-menu .menu-label {
+            padding: 15px 20px 5px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin: 2px 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-radius: 12px;
+            margin: 2px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-menu a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            border-radius: 0 3px 3px 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu a:hover::before,
+        .sidebar-menu a.active::before {
+            opacity: 1;
+        }
+
+        .sidebar-menu a i {
+            width: 35px;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-menu a:hover i {
+            transform: scale(1.1);
+        }
+
+        .sidebar-menu a span {
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .sidebar-menu .badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--warning-color), #ff6b6b);
+            color: white;
+            margin-left: 8px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s;
+            min-height: 100vh;
+            background: #f5f7fb;
+        }
+
+        /* Top Navigation - Enhanced */
+        .top-nav {
+            background: #fff;
+            padding: 0 30px;
+            height: var(--header-height);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e1b4b;
+            position: relative;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 3px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-badge i {
+            font-size: 1.3rem;
+            color: #6c757d;
+            transition: color 0.3s;
+        }
+
+        .notification-badge:hover i {
+            color: var(--primary-color);
+        }
+
+        .notification-badge .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            padding: 3px 6px;
+            font-size: 0.6rem;
+            background: linear-gradient(135deg, var(--warning-color), #ff6b6b);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 5px 10px;
+            border-radius: 12px;
+            background: #f8f9fc;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-info:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .user-details {
+            line-height: 1.4;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #1e1b4b;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--danger-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid var(--danger-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-color);
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+        }
+
+        /* Content Area */
+        .content-wrapper {
+            padding: 30px;
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        /* Enhanced Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-info h3 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .stat-info .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            margin: 8px 0 0;
+            line-height: 1.2;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon.primary { background: linear-gradient(135deg, #4361ee, #4895ef); }
+        .stat-icon.success { background: linear-gradient(135deg, #4cc9f0, #4895ef); }
+        .stat-icon.info { background: linear-gradient(135deg, #4895ef, #4361ee); }
+        .stat-icon.warning { background: linear-gradient(135deg, #f72585, #e63946); }
+
+        /* Enhanced Tables */
+        .table-container {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-top: 25px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin: 0;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-filter {
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: #f8f9fc;
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-filter:hover {
+            background: #e9ecef;
+            color: #1e1b4b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .table thead th {
+            background: #f8f9fc;
+            border: none;
+            padding: 15px 20px;
+            font-weight: 700;
+            color: #495057;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 12px;
+        }
+
+        .table tbody tr {
+            background: #fff;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .table tbody tr:hover {
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+        }
+
+        .table tbody td {
+            padding: 18px 20px;
+            border: none;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        /* Enhanced Badges */
+        .badge {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-success { 
+            background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);
+            color: white; 
+        }
+        .badge-warning { 
+            background: linear-gradient(135deg, #f72585 0%, #e63946 100%);
+            color: white; 
+        }
+        .badge-danger { 
+            background: linear-gradient(135deg, #e63946 0%, #c92a2a 100%);
+            color: white; 
+        }
+        .badge-info { 
+            background: linear-gradient(135deg, #4895ef 0%, #4361ee 100%);
+            color: white; 
+        }
+        .badge-primary { 
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            color: white; 
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0 3px;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-action i {
+            font-size: 0.9rem;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-view {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-edit {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--hover-shadow);
+        }
+
+        .card-header {
+            background: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 20px 25px;
+            font-weight: 700;
+            color: #1e1b4b;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Forms */
+        .form-control {
+            border-radius: 12px;
+            border: 2px solid #edf2f7;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            gap: 5px;
+        }
+
+        .page-link {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px !important;
+            color: #495057;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        .page-item .page-link:hover {
+            background: #e9ecef;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: calc(var(--sidebar-width) * -1);
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .main-content.sidebar-active {
+                margin-left: var(--sidebar-width);
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .user-details {
+                display: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-wrapper > * {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Admin Panel</h3>
+            <p>Child Adoption System</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="menu-label">MAIN</div>
+            <ul>
+                <li>
+                    <a href="{% url 'admin_panel:dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel:user_list' %}" {% if request.resolver_match.url_name == 'user_list' %}class="active"{% endif %}>
+                        <i class="fas fa-users"></i>
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel:organization_list' %}" {% if request.resolver_match.url_name == 'organization_list' %}class="active"{% endif %}>
+                        <i class="fas fa-building"></i>
+                        <span>Organizations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel:organization_request_list' %}" {% if request.resolver_match.url_name == 'organization_request_list' %}class="active"{% endif %}>
+                        <i class="fas fa-user-check"></i>
+                        <span>Organization Requests</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel:child_list' %}" {% if request.resolver_match.url_name == 'child_list' %}class="active"{% endif %}>
+                        <i class="fas fa-child"></i>
+                        <span>Children</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="menu-label">REQUESTS</div>
+            <ul>
+                <li>
+                    <a href="{% url 'admin_panel:adoption_request_list' %}" {% if request.resolver_match.url_name == 'adoption_request_list' %}class="active"{% endif %}>
+                        <i class="fas fa-file-signature"></i>
+                        <span>Adoption Requests</span>
+                        <span class="badge">3</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel:donation_list' %}" {% if request.resolver_match.url_name == 'donation_list' %}class="active"{% endif %}>
+                        <i class="fas fa-hand-holding-heart"></i>
+                        <span>Donations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel:sponsorship_list' %}" {% if request.resolver_match.url_name == 'sponsorship_list' %}class="active"{% endif %}>
+                        <i class="fas fa-star"></i>
+                        <span>Sponsorships</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+            
+            {% if user.is_authenticated %}
+            <div class="user-menu">
+                <!-- Notifications -->
+                <div class="notification-badge">
+                    <i class="far fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                
+                <!-- User Info Dropdown -->
+                <div class="dropdown">
+                    <div class="user-info" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <div class="user-avatar">
+                            {{ user.first_name|first|default:'A' }}{{ user.last_name|first|default:'U' }}
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="user-role">
+                                <i class="fas fa-shield-alt mr-1"></i>Administrator
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-down ml-2" style="color: #6c757d; font-size: 0.8rem;"></i>
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user mr-2"></i>Profile
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-cog mr-2"></i>Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-wrapper">
+            <!-- Stats Section - Only show on dashboard -->
+            {% if request.resolver_match.url_name == 'dashboard' %}
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Total Users</h3>
+                        <div class="stat-number">1,234</div>
+                        <small class="text-success"><i class="fas fa-arrow-up"></i> +12.5%</small>
+                    </div>
+                    <div class="stat-icon primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Active Children</h3>
+                        <div class="stat-number">567</div>
+                        <small class="text-success"><i class="fas fa-arrow-up"></i> +5.2%</small>
+                    </div>
+                    <div class="stat-icon success">
+                        <i class="fas fa-child"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Pending Requests</h3>
+                        <div class="stat-number">89</div>
+                        <small class="text-warning"><i class="fas fa-clock"></i> -3 from yesterday</small>
+                    </div>
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>Total Donations</h3>
+                        <div class="stat-number">$45.6K</div>
+                        <small class="text-success"><i class="fas fa-arrow-up"></i> +23%</small>
+                    </div>
+                    <div class="stat-icon info">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Main Block Content -->
+            {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Mobile menu toggle button -->
+    <button class="btn btn-primary d-md-none" id="sidebarToggle" style="position: fixed; bottom: 20px; right: 20px; z-index: 1001; border-radius: 50%; width: 50px; height: 50px;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <script>
+        $(document).ready(function() {
+            // Sidebar toggle for mobile
+            $('#sidebarToggle').click(function() {
+                $('.sidebar').toggleClass('active');
+                $('.main-content').toggleClass('sidebar-active');
+            });
+
+            // Add active class based on current URL
+            var currentUrl = window.location.pathname;
+            $('.sidebar-menu a').each(function() {
+                if ($(this).attr('href') === currentUrl) {
+                    $(this).addClass('active');
+                }
+            });
+
+            // Tooltip initialization
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Popover initialization
+            $('[data-toggle="popover"]').popover();
+
+            // Auto-hide sidebar on mobile when clicking a link
+            if ($(window).width() <= 768) {
+                $('.sidebar-menu a').click(function() {
+                    $('.sidebar').removeClass('active');
+                    $('.main-content').removeClass('sidebar-active');
+                });
+            }
+
+            // Add loading state to buttons
+            $('.btn-action').click(function() {
+                var btn = $(this);
+                btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+                setTimeout(function() {
+                    btn.html(btn.data('original-text'));
+                }, 2000);
+            });
+        });
+
+        // Handle window resize
+        $(window).resize(function() {
+            if ($(window).width() > 768) {
+                $('.sidebar').removeClass('active');
+                $('.main-content').removeClass('sidebar-active');
+            }
+        });
+
+        // Notification click handler
+        $('.notification-badge').click(function() {
+            // Show notifications dropdown
+            alert('Notifications feature coming soon!');
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

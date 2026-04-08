@@ -1,0 +1,1134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block adoption %}
+<div class="container" style="min-height: 100vh; padding-top: 7rem; padding-bottom: 3rem;">
+
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-primary mb-3">
+            <i class="bi bi-heart-fill me-2"></i>My Adoption Requests
+        </h1>
+        <p class="lead text-muted">Track the status of all your adoption applications</p>
+    </div>
+
+    <!-- Messages Display -->
+    <div class="container mb-4">
+        {% for msg in messages %}
+        <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                    alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                         me-2 fs-5"></i>
+                <strong>{{ msg }}</strong>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-5">
+        <!-- Total Requests -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-6 text-primary" id="totalCount">{{ ad_rq.count }}</h2>
+                    <p class="text-muted mb-0">Total Requests</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Approved Requests -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-6 text-success" id="approvedCount">0</h2>
+                    <p class="text-muted mb-0">Approved</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Requests -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-6 text-warning" id="pendingCount">0</h2>
+                    <p class="text-muted mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rejected Requests -->
+        <div class="col-md-3 mb-3">
+            <div class="card border-danger shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-6 text-danger" id="rejectedCount">0</h2>
+                    <p class="text-muted mb-0">Rejected</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests List -->
+    <div class="row">
+        <div class="col-12">
+            {% if ad_rq.exists %}
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-list-check me-2"></i>Adoption Applications
+                        </h4>
+                        <span class="badge bg-light text-primary fs-6">
+                            Total: {{ ad_rq.count }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="py-3 ps-4">Organization</th>
+                                    <th scope="col" class="py-3">Subject</th>
+                                    <th scope="col" class="py-3">Applied Date</th>
+                                    <th scope="col" class="py-3">Status</th>
+                                    <th scope="col" class="py-3 pe-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in ad_rq %}
+                                <tr class="{% if forloop.counter|divisibleby:2 %}table-light{% endif %}">
+                                    <td class="ps-4 py-3 align-middle">
+                                        <div class="d-flex align-items-center">
+                                            {% if request.organization.image %}
+                                            <img src="{{ request.organization.image.url }}" 
+                                                 class="rounded-circle me-3" 
+                                                 alt="{{ request.organization.name }}"
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3"
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-building text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold">{{ request.organization.name }}</h6>
+                                                <small class="text-muted">{{ request.organization.address|truncatechars:30|default:"N/A" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 align-middle">
+                                        <span class="fw-medium">{{ request.subject|truncatechars:50 }}</span>
+                                        {% if request.feedback and request.status == 'R' %}
+                                        <br>
+                                        <small class="text-danger">
+                                            <i class="bi bi-chat-left-text me-1"></i>
+                                            Feedback: {{ request.feedback|truncatechars:30 }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 align-middle">
+                                        {% if request.created_at %}
+                                        {{ request.created_at|date:"d M Y" }}
+                                        {% else %}
+                                        N/A
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 align-middle">
+                                        {% if request.status == 'A' %}
+                                        <span class="status-text text-success fw-bold request-status" data-status="approved">
+                                            <i class="bi bi-check-circle me-1"></i>Approved
+                                        </span>
+                                        {% elif request.status == 'R' %}
+                                        <span class="status-text text-danger fw-bold request-status" data-status="rejected">
+                                            <i class="bi bi-x-circle me-1"></i>Rejected
+                                        </span>
+                                        {% else %}
+                                        <span class="status-text text-warning fw-bold request-status" data-status="pending">
+                                            <i class="bi bi-clock me-1"></i>Pending
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 pe-4 align-middle text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-primary view-details-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#requestModal{{ forloop.counter }}"
+                                                data-request-id="{{ request.id }}">
+                                            <i class="bi bi-eye me-1"></i>View Details
+                                        </button>
+                                        
+                                        {% if request.status == 'A' %}
+                                        <a href="{% url 'usr_ch_li' request.organization.id %}" 
+                                           class="btn btn-sm btn-success ms-2">
+                                            <i class="bi bi-heart me-1"></i>Select Child
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Modals for each request -->
+            {% for request in ad_rq %}
+            <!-- Enhanced Request Details Modal -->
+            <div class="modal fade" id="requestModal{{ forloop.counter }}" tabindex="-1" 
+                 aria-labelledby="requestModalLabel{{ forloop.counter }}" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <!-- Modal Header -->
+                        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="w-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="modal-title text-white mb-1" id="requestModalLabel{{ forloop.counter }}">
+                                            <i class="bi bi-file-earmark-medical me-2"></i>
+                                            Adoption Application Details
+                                        </h5>
+                                        <p class="text-white-50 mb-0 small">
+                                            ID: AD-{{ request.id|stringformat:"06d" }} • Submitted: {{ request.created_at|date:"d M Y" }}
+                                        </p>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white" 
+                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Body -->
+                        <div class="modal-body p-0">
+                            <!-- Status Banner -->
+                            <div class="status-banner {% if request.status == 'A' %}bg-success{% elif request.status == 'R' %}bg-danger{% else %}bg-warning{% endif %} text-white py-3">
+                                <div class="container">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h5 class="mb-1">
+                                                {% if request.status == 'A' %}
+                                                <i class="bi bi-check-circle-fill me-2"></i>Application Approved
+                                                {% elif request.status == 'R' %}
+                                                <i class="bi bi-x-circle-fill me-2"></i>Application Rejected
+                                                {% else %}
+                                                <i class="bi bi-clock-fill me-2"></i>Application Pending Review
+                                                {% endif %}
+                                            </h5>
+                                            <p class="mb-0 opacity-75">
+                                                {% if request.status == 'A' %}
+                                                Congratulations! Your application has been approved. You can now proceed to select a child.
+                                                {% elif request.status == 'R' %}
+                                                Your application requires additional review. Please see feedback below.
+                                                {% else %}
+                                                Your application is currently under review. Please check back later.
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="status-chip">
+                                                {% if request.status == 'A' %}
+                                                <span class="status-text-large text-white fw-bold">
+                                                    <i class="bi bi-check-lg me-1"></i>APPROVED
+                                                </span>
+                                                {% elif request.status == 'R' %}
+                                                <span class="status-text-large text-white fw-bold">
+                                                    <i class="bi bi-x-lg me-1"></i>REJECTED
+                                                </span>
+                                                {% else %}
+                                                <span class="status-text-large text-white fw-bold">
+                                                    <i class="bi bi-clock me-1"></i>PENDING
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Main Content -->
+                            <div class="container py-4">
+                                <div class="row">
+                                    <!-- Left Column - Organization & Personal Info -->
+                                    <div class="col-lg-6">
+                                        <!-- Organization Card -->
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-primary text-white d-flex align-items-center">
+                                                <i class="bi bi-building fs-5 me-2"></i>
+                                                <h6 class="mb-0">Organization Information</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-start mb-3">
+                                                    {% if request.organization.image %}
+                                                    <img src="{{ request.organization.image.url }}" 
+                                                         class="rounded-circle me-3" 
+                                                         alt="{{ request.organization.name }}"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                    {% else %}
+                                                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3"
+                                                         style="width: 60px; height: 60px;">
+                                                        <i class="bi bi-building fs-3 text-primary"></i>
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <h5 class="mb-1">{{ request.organization.name }}</h5>
+                                                        <p class="text-muted mb-2">{{ request.organization.address|default:"N/A" }}</p>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-telephone text-primary me-2"></i>
+                                                            <span>{{ request.organization.contact_number|default:"N/A" }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Personal Information Card -->
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-info text-white d-flex align-items-center">
+                                                <i class="bi bi-person-badge fs-5 me-2"></i>
+                                                <h6 class="mb-0">Personal Information</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="info-item">
+                                                            <label class="text-muted small mb-1">Full Name</label>
+                                                            <p class="mb-0 fw-semibold">{{ request.full_name|default:"N/A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="info-item">
+                                                            <label class="text-muted small mb-1">Email Address</label>
+                                                            <p class="mb-0 fw-semibold">{{ request.email|default:"N/A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="info-item">
+                                                            <label class="text-muted small mb-1">Phone Number</label>
+                                                            <p class="mb-0 fw-semibold">{{ request.phone|default:"N/A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="info-item">
+                                                            <label class="text-muted small mb-1">Age</label>
+                                                            <p class="mb-0 fw-semibold">{{ request.age|default:"N/A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="info-item">
+                                                            <label class="text-muted small mb-1">Marital Status</label>
+                                                            <p class="mb-0 fw-semibold">{{ request.marital_status|default:"N/A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="info-item">
+                                                            <label class="text-muted small mb-1">Occupation</label>
+                                                            <p class="mb-0 fw-semibold">{{ request.occupation|default:"N/A" }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Column - Application Details -->
+                                    <div class="col-lg-6">
+                                        <!-- Application Details Card -->
+                                        <div class="card border-0 shadow-sm mb-4">
+                                            <div class="card-header bg-success text-white d-flex align-items-center">
+                                                <i class="bi bi-file-text fs-5 me-2"></i>
+                                                <h6 class="mb-0">Application Details</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-4">
+                                                    <label class="text-muted small mb-1">Application Subject</label>
+                                                    <h5 class="mb-3">{{ request.subject }}</h5>
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="info-item">
+                                                                <label class="text-muted small mb-1">Annual Income</label>
+                                                                <p class="mb-0 fw-semibold">₹{{ request.income|default:"N/A" }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="info-item">
+                                                                <label class="text-muted small mb-1">Criminal History</label>
+                                                                <p class="mb-0 fw-semibold">
+                                                                    {% if request.criminal_history == 'Yes' %}
+                                                                    <span class="text-danger fw-bold">Yes</span>
+                                                                    {% else %}
+                                                                    <span class="text-success fw-bold">No</span>
+                                                                    {% endif %}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="info-item mb-3">
+                                                        <label class="text-muted small mb-1">Residential Address</label>
+                                                        <p class="mb-0 fw-semibold">{{ request.address|default:"N/A" }}</p>
+                                                    </div>
+                                                    
+                                                    <div class="info-item">
+                                                        <label class="text-muted small mb-1">Additional Comments</label>
+                                                        <div class="bg-light p-3 rounded">
+                                                            <p class="mb-0">{{ request.additional_comments|default:"No additional comments provided." }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Feedback & Documents Card -->
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header bg-warning text-white d-flex align-items-center">
+                                                <i class="bi bi-chat-left-text fs-5 me-2"></i>
+                                                <h6 class="mb-0">Feedback & Documents</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Feedback Section -->
+                                                {% if request.feedback and request.status == 'R' %}
+                                                <div class="alert alert-danger mb-4">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                                                        <div>
+                                                            <h6 class="alert-heading mb-2">Organization Feedback</h6>
+                                                            <p class="mb-0">{{ request.feedback }}</p>
+                                                            <hr class="my-2">
+                                                            <small class="text-muted">
+                                                                <i class="bi bi-info-circle me-1"></i>
+                                                                You can contact the organization for more details or to reapply.
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% elif request.status == 'A' %}
+                                                <div class="alert alert-success mb-4">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                                                        <div>
+                                                            <h6 class="alert-heading mb-2">Application Approved!</h6>
+                                                            <p class="mb-0">Your application has been successfully approved. You can now proceed to select a child for adoption.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% else %}
+                                                <div class="alert alert-info mb-4">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="bi bi-clock-history fs-4 me-3"></i>
+                                                        <div>
+                                                            <h6 class="alert-heading mb-2">Application Under Review</h6>
+                                                            <p class="mb-0">Your application is currently being reviewed by the organization. You will be notified once a decision is made.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+
+                                                <!-- Documents Section -->
+                                                <div class="documents-section">
+                                                    <h6 class="mb-3">Uploaded Documents</h6>
+                                                    {% if request.id_proof %}
+                                                    <div class="document-card">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="document-icon">
+                                                                <i class="bi bi-file-earmark-pdf fs-1 text-danger"></i>
+                                                            </div>
+                                                            <div class="ms-3 flex-grow-1">
+                                                                <h6 class="mb-1">ID Proof Document</h6>
+                                                                <p class="text-muted mb-0 small">Uploaded for verification purposes</p>
+                                                                <div class="mt-2">
+                                                                    <a href="{{ request.id_proof.url }}" 
+                                                                       target="_blank" 
+                                                                       class="btn btn-sm btn-outline-primary me-2">
+                                                                        <i class="bi bi-eye me-1"></i>Preview
+                                                                    </a>
+                                                                    <a href="{{ request.id_proof.url }}" 
+                                                                       download 
+                                                                       class="btn btn-sm btn-outline-success">
+                                                                        <i class="bi bi-download me-1"></i>Download
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% else %}
+                                                    <div class="text-center py-4 border rounded">
+                                                        <i class="bi bi-file-earmark-x fs-1 text-muted mb-3"></i>
+                                                        <p class="text-muted mb-0">No documents uploaded</p>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header bg-dark text-white d-flex align-items-center">
+                                                <i class="bi bi-clock-history fs-5 me-2"></i>
+                                                <h6 class="mb-0">Application Timeline</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="timeline">
+                                                    <div class="timeline-item completed">
+                                                        <div class="timeline-icon">
+                                                            <i class="bi bi-file-earmark-plus"></i>
+                                                        </div>
+                                                        <div class="timeline-content">
+                                                            <h6 class="mb-1">Application Submitted</h6>
+                                                            <p class="text-muted mb-0">{{ request.created_at|date:"d M Y, h:i A" }}</p>
+                                                            <p class="mb-0 small">Your adoption application was successfully submitted.</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="timeline-item {% if request.status != 'P' %}completed{% endif %}">
+                                                        <div class="timeline-icon">
+                                                            {% if request.status != 'P' %}
+                                                            <i class="bi bi-check-circle"></i>
+                                                            {% else %}
+                                                            <i class="bi bi-clock"></i>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="timeline-content">
+                                                            <h6 class="mb-1">Under Review</h6>
+                                                            <p class="text-muted mb-0">
+                                                                {% if request.status != 'P' %}
+                                                                Completed
+                                                                {% else %}
+                                                                In Progress
+                                                                {% endif %}
+                                                            </p>
+                                                            <p class="mb-0 small">Application is being reviewed by the organization.</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="timeline-item {% if request.status == 'A' %}completed{% elif request.status == 'R' %}completed{% endif %}">
+                                                        <div class="timeline-icon">
+                                                            {% if request.status == 'A' %}
+                                                            <i class="bi bi-check-circle"></i>
+                                                            {% elif request.status == 'R' %}
+                                                            <i class="bi bi-check-circle"></i>
+                                                            {% else %}
+                                                            <i class="bi bi-clock"></i>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="timeline-content">
+                                                            <h6 class="mb-1">Decision Made</h6>
+                                                            <p class="text-muted mb-0">
+                                                                {% if request.status == 'A' %}
+                                                                Approved on {{ request.updated_at|date:"d M Y" }}
+                                                                {% elif request.status == 'R' %}
+                                                                Rejected on {{ request.updated_at|date:"d M Y" }}
+                                                                {% else %}
+                                                                Pending
+                                                                {% endif %}
+                                                            </p>
+                                                            <p class="mb-0 small">
+                                                                {% if request.status == 'A' %}
+                                                                Your application has been approved!
+                                                                {% elif request.status == 'R' %}
+                                                                Your application has been rejected.
+                                                                {% else %}
+                                                                Waiting for organization's decision.
+                                                                {% endif %}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {% if request.status == 'A' %}
+                                                    <div class="timeline-item upcoming">
+                                                        <div class="timeline-icon">
+                                                            <i class="bi bi-arrow-right"></i>
+                                                        </div>
+                                                        <div class="timeline-content">
+                                                            <h6 class="mb-1">Next Steps</h6>
+                                                            <p class="text-muted mb-0">Select a Child</p>
+                                                            <p class="mb-0 small">Proceed to select a child for adoption process.</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="modal-footer border-top">
+                            <div class="w-100 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Application ID: AD-{{ request.id|stringformat:"06d" }}
+                                    </small>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-secondary me-2" 
+                                            data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-1"></i>Close
+                                    </button>
+                                    {% if request.status == 'A' %}
+                                    <a href="{% url 'usr_ch_li' request.organization.id %}" 
+                                       class="btn btn-success">
+                                        <i class="bi bi-heart me-1"></i>Select a Child
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Empty State -->
+            {% else %}
+            <div class="card border-0 shadow-lg">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-inbox text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="text-primary mb-3">No Adoption Requests Yet</h3>
+                    <p class="lead text-muted mb-4">
+                        You haven't submitted any adoption requests. Start your adoption journey by applying to an organization.
+                    </p>
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-search me-2"></i>Browse Organizations
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    {% if ad_rq.exists %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-question-circle me-2"></i>Need Help?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-clock-history text-info fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-semibold">Processing Time</h6>
+                                    <p class="mb-0 small text-muted">Adoption requests typically take 7-14 business days to process.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-telephone text-info fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-semibold">Contact Organization</h6>
+                                    <p class="mb-0 small text-muted">For specific queries, contact the organization directly.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <i class="bi bi-chat-left-text text-info fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-semibold">Update Information</h6>
+                                    <p class="mb-0 small text-muted">Contact support if you need to update your application details.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Custom Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .card-header {
+        border-bottom: none;
+        padding: 1rem 1.25rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+        padding: 1rem;
+    }
+
+    .table td {
+        vertical-align: middle;
+        border-top: 1px solid #f0f0f0;
+        padding: 1rem;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    /* Status Text Styles - Plain text without badges/boxes */
+    .status-text {
+        font-size: 1rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .status-text.text-success {
+        color: #28a745 !important;
+    }
+
+    .status-text.text-danger {
+        color: #dc3545 !important;
+    }
+
+    .status-text.text-warning {
+        color: #ffc107 !important;
+    }
+
+    .status-text-large {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Enhanced Modal Styles */
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        padding: 1.5rem 2rem;
+        border-bottom: none;
+    }
+
+    .status-banner {
+        padding: 1.5rem 0;
+    }
+
+    .status-banner.bg-success {
+        background: linear-gradient(135deg, #28a745, #20c997) !important;
+    }
+
+    .status-banner.bg-danger {
+        background: linear-gradient(135deg, #dc3545, #fd7e14) !important;
+    }
+
+    .status-banner.bg-warning {
+        background: linear-gradient(135deg, #ffc107, #ff9800) !important;
+    }
+
+    /* Info Items */
+    .info-item {
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+
+    .info-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    /* Document Card */
+    .document-card {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        transition: all 0.3s ease;
+    }
+
+    .document-card:hover {
+        border-color: #4e73df;
+        background: #eef2ff;
+    }
+
+    .document-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Timeline */
+    .timeline {
+        position: relative;
+        padding-left: 40px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .timeline-item.completed .timeline-icon {
+        background: #28a745;
+        color: white;
+    }
+
+    .timeline-item.upcoming .timeline-icon {
+        background: #6c757d;
+        color: white;
+    }
+
+    .timeline-icon {
+        position: absolute;
+        left: -40px;
+        top: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #dee2e6;
+        color: #6c757d;
+        z-index: 2;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .timeline-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #dee2e6;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .timeline-item.completed .timeline-content {
+        border-left-color: #28a745;
+    }
+
+    .timeline-item.upcoming .timeline-content {
+        border-left-color: #6c757d;
+    }
+
+    /* Button Styles */
+    .btn-outline-primary {
+        border-width: 2px;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-success {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    /* View Details Button Animation */
+    .view-details-btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .view-details-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%);
+        transform-origin: 50% 50%;
+    }
+
+    .view-details-btn:focus:not(:active)::after {
+        animation: ripple 1s ease-out;
+    }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(0, 0);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(20, 20);
+            opacity: 0;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal.show .modal-dialog {
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .table tbody tr {
+        animation: fadeIn 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+    .table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+    .table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+    .table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+    .table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .container {
+            padding-top: 5rem;
+            padding-bottom: 2rem;
+        }
+        
+        .table-responsive {
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .modal-dialog {
+            margin: 0.5rem;
+        }
+        
+        .modal-body .container {
+            padding: 0;
+        }
+        
+        .timeline {
+            padding-left: 30px;
+        }
+        
+        .timeline-icon {
+            width: 30px;
+            height: 30px;
+            left: -30px;
+        }
+        
+        .card-header h6 {
+            font-size: 0.9rem;
+        }
+        
+        .status-text {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Stats card animation */
+    .display-6 {
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover .display-6 {
+        transform: scale(1.1);
+    }
+
+    /* Empty state styling */
+    .bi-inbox {
+        opacity: 0.7;
+    }
+</style>
+
+<script>
+    // Calculate and display stats
+    document.addEventListener('DOMContentLoaded', function() {
+        function calculateAndDisplayStats() {
+            let approvedCount = 0;
+            let pendingCount = 0;
+            let rejectedCount = 0;
+            
+            // Get all status badges
+            const statusBadges = document.querySelectorAll('.request-status');
+            
+            statusBadges.forEach(badge => {
+                const status = badge.getAttribute('data-status');
+                if (status === 'approved') {
+                    approvedCount++;
+                } else if (status === 'pending') {
+                    pendingCount++;
+                } else if (status === 'rejected') {
+                    rejectedCount++;
+                }
+            });
+            
+            // Update the stat cards
+            document.getElementById('approvedCount').textContent = approvedCount;
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('rejectedCount').textContent = rejectedCount;
+            
+            // Update total count in header badge if exists
+            const totalBadge = document.querySelector('.card-header .badge');
+            if (totalBadge) {
+                const total = approvedCount + pendingCount + rejectedCount;
+                totalBadge.textContent = `Total: ${total}`;
+            }
+            
+            // Add animation to updated numbers
+            const counters = [
+                document.getElementById('approvedCount'),
+                document.getElementById('pendingCount'),
+                document.getElementById('rejectedCount')
+            ];
+            
+            counters.forEach(counter => {
+                counter.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    counter.style.transform = 'scale(1)';
+                }, 300);
+            });
+        }
+        
+        // Calculate stats on page load
+        calculateAndDisplayStats();
+        
+        // Add click event to view buttons
+        const viewButtons = document.querySelectorAll('.view-details-btn');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const requestId = this.getAttribute('data-request-id');
+                
+                // Add loading animation
+                this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Loading...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-eye me-1"></i>View Details';
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+        
+        // Add animation to table rows
+        const tableRows = document.querySelectorAll('.table tbody tr');
+        tableRows.forEach((row, index) => {
+            row.style.animationDelay = `${(index + 1) * 0.1}s`;
+        });
+        
+        // Modal show/hide animations
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('show.bs.modal', function() {
+                const modalBody = this.querySelector('.modal-body');
+                if (modalBody) {
+                    modalBody.style.opacity = '0';
+                    modalBody.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        modalBody.style.transition = 'all 0.5s ease-out';
+                        modalBody.style.opacity = '1';
+                        modalBody.style.transform = 'translateY(0)';
+                    }, 100);
+                }
+            });
+            
+            modal.addEventListener('hidden.bs.modal', function() {
+                // Re-calculate stats when modal closes
+                calculateAndDisplayStats();
+            });
+        });
+        
+        // Add hover effects to cards in modals
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+
+{% endblock adoption %}

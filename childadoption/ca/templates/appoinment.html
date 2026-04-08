@@ -1,0 +1,480 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block appoinment %}
+<div class="container-fluid" style="min-height: 100vh; padding-top: 7rem; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <div class="container py-5">
+        <!-- Header Section -->
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-semibold px-4 py-2 mb-3 rounded-pill">
+                <i class="bi bi-calendar-check me-2"></i>Schedule Appointment
+            </span>
+            <h1 class="display-5 fw-bold mb-3 text-dark">Schedule Your Visit</h1>
+            <p class="lead text-muted mb-4">
+                Book an appointment to meet the child and discuss the adoption process.
+            </p>
+        </div>
+
+        <!-- Messages Display -->
+        <div class="container mb-5">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                        alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                             me-2 fs-5"></i>
+                    <strong>{{ msg }}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Appointment Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-primary text-white py-4">
+                        <h4 class="mb-0">
+                            <i class="bi bi-calendar-plus me-2"></i>Appointment Details
+                        </h4>
+                        <p class="mb-0 opacity-75">Please fill in all required information</p>
+                    </div>
+                    
+                    <div class="card-body p-4 p-lg-5">
+                        <form method="post" enctype="multipart/form-data" id="appointmentForm" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- Appointment Date & Time -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="{{ form.date.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="bi bi-calendar3 me-1"></i>Appointment Date *
+                                        </label>
+                                        {{ form.date }}
+                                        <div class="form-text text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Select a date between tomorrow and 3 months from now (Weekdays only)
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            Please select a valid appointment date.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="{{ form.time.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="bi bi-clock me-1"></i>Appointment Time *
+                                        </label>
+                                        {{ form.time }}
+                                        <div class="form-text text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Available hours: 9:00 AM - 6:00 PM
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            Please select a valid appointment time.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Purpose & Duration -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="{{ form.purpose.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="bi bi-flag me-1"></i>Purpose of Visit *
+                                        </label>
+                                        {{ form.purpose }}
+                                        <div class="invalid-feedback">
+                                            Please select the purpose of your visit.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="{{ form.duration.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="bi bi-hourglass-split me-1"></i>Preferred Duration *
+                                        </label>
+                                        {{ form.duration }}
+                                        <div class="invalid-feedback">
+                                            Please select preferred duration.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Number of People & Contact Preference -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="{{ form.number_of_people.id_for_label }}" class="form-label fw-semibold">
+                                            <i class="bi bi-people me-1"></i>Number of People *
+                                        </label>
+                                        {{ form.number_of_people }}
+                                        <div class="form-text text-muted">
+                                            Maximum 5 people allowed per visit
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            Please enter number of people (1-5).
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-telephone me-1"></i>Contact Preference *
+                                        </label>
+                                        <div class="contact-preference">
+                                            {% for choice in form.contact_preference %}
+                                            <div class="form-check form-check-inline">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            Please select your contact preference.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Information -->
+                            <div class="mb-4">
+                                <label for="{{ form.additional_notes.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="bi bi-chat-left-text me-1"></i>Additional Notes
+                                </label>
+                                {{ form.additional_notes }}
+                                <div class="form-text text-muted">
+                                    Please mention any special requirements or questions you have.
+                                </div>
+                            </div>
+
+                            <!-- Documents Checkbox -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    {{ form.bring_documents }}
+                                    <label class="form-check-label fw-semibold" for="{{ form.bring_documents.id_for_label }}">
+                                        <i class="bi bi-file-earmark-check me-1"></i>
+                                        I will bring the required documents for verification
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Required documents: ID Proof, Address Proof, Income Certificate
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                                    <label class="form-check-label" for="termsCheck">
+                                        <i class="bi bi-shield-check me-1"></i>
+                                        I agree to the terms and conditions and understand that:
+                                        <ul class="small mt-2">
+                                            <li>Appointment confirmation is subject to availability</li>
+                                            <li>Cancellation must be done 24 hours in advance</li>
+                                            <li>Late arrivals may result in shortened appointment time</li>
+                                            <li>All visitors must follow organization guidelines</li>
+                                        </ul>
+                                    </label>
+                                    <div class="invalid-feedback">
+                                        You must agree to the terms before scheduling.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Appointment Summary -->
+                            <div class="card border-info mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-info-circle me-2"></i>Appointment Summary
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>Office Hours:</strong> 9:00 AM - 6:00 PM</p>
+                                            <p class="mb-2"><strong>Working Days:</strong> Monday to Friday</p>
+                                            <p class="mb-2"><strong>Location:</strong> Organization Premises</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>What to bring:</strong> Original Documents</p>
+                                            <p class="mb-2"><strong>Parking:</strong> Available on site</p>
+                                            <p class="mb-0"><strong>Contact:</strong> Organization office</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between mt-5">
+                                <!-- SIMPLE FIX: Use organization ID from child object -->
+                                {% if child and child.organization and child.organization.id %}
+                                <a href="{% url 'usr_ch_li' child.organization.id %}" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Children
+                                </a>
+                                {% else %}
+                                <!-- Fallback to home if child or organization not available -->
+                                <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Home
+                                </a>
+                                {% endif %}
+                                
+                                <div class="d-flex gap-3">
+                                    <button type="reset" class="btn btn-outline-primary px-4">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                                    </button>
+                                    <button type="submit" class="btn btn-primary px-5 fw-bold" id="submitBtn">
+                                        <i class="bi bi-calendar-check me-2"></i>Schedule Appointment
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Help Information -->
+                <div class="row mt-5">
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock-history text-primary fs-1 mb-3"></i>
+                                <h5 class="card-title">Duration</h5>
+                                <p class="card-text text-muted">
+                                    Appointments typically last 1-2 hours depending on the purpose.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-text text-success fs-1 mb-3"></i>
+                                <h5 class="card-title">Documents</h5>
+                                <p class="card-text text-muted">
+                                    Bring original ID proof, address proof, and income certificate.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <i class="bi bi-telephone-outbound text-warning fs-1 mb-3"></i>
+                                <h5 class="card-title">Confirmation</h5>
+                                <p class="card-text text-muted">
+                                    You'll receive a confirmation call/email within 24 hours.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Basic Styles - Keep minimal */
+    .form-control, .form-select {
+        border: 2px solid #e1e5eb;
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    }
+
+    .form-label {
+        color: #2e3a59;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: #4e73df;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #4e73df;
+        color: #4e73df;
+        border-radius: 10px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    /* Date and time input styling */
+    .form-control[type="date"] {
+        background: white;
+    }
+
+    .form-control[type="time"] {
+        background: white;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding-top: 5rem;
+        }
+        
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .d-flex.gap-3 {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+
+    /* Loading animation for submit button */
+    .btn-loading {
+        position: relative;
+        color: transparent;
+    }
+
+    .btn-loading::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 20px;
+        height: 20px;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('appointmentForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const dateInput = document.getElementById('{{ form.date.id_for_label }}');
+        const timeInput = document.getElementById('{{ form.time.id_for_label }}');
+        
+        // Set minimum date to tomorrow
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        // Format to YYYY-MM-DD
+        const minDate = tomorrow.toISOString().split('T')[0];
+        if (dateInput) {
+            dateInput.min = minDate;
+            
+            // Set max date to 3 months from now
+            const maxDate = new Date(today);
+            maxDate.setMonth(maxDate.getMonth() + 3);
+            dateInput.max = maxDate.toISOString().split('T')[0];
+            
+            // Set default value to tomorrow
+            dateInput.value = minDate;
+        }
+        
+        // Set default time to 10:00 AM
+        if (timeInput) {
+            timeInput.value = '10:00';
+        }
+        
+        // Form validation
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                // Show loading animation
+                submitBtn.classList.add('btn-loading');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Scheduling...';
+            }
+            
+            form.classList.add('was-validated');
+        }, false);
+        
+        // Real-time date validation
+        if (dateInput) {
+            dateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                const day = selectedDate.getDay();
+                
+                // Check if weekend
+                if (day === 0 || day === 6) { // 0 = Sunday, 6 = Saturday
+                    this.setCustomValidity('Appointments are not available on weekends. Please select a weekday.');
+                    this.classList.add('is-invalid');
+                } else {
+                    this.setCustomValidity('');
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+        
+        // Real-time time validation
+        if (timeInput) {
+            timeInput.addEventListener('change', function() {
+                const selectedTime = this.value;
+                const timeParts = selectedTime.split(':');
+                const hours = parseInt(timeParts[0]);
+                const minutes = parseInt(timeParts[1]);
+                
+                // Check if within business hours (9 AM - 6 PM)
+                if (hours < 9 || hours > 18 || (hours === 18 && minutes > 0)) {
+                    this.setCustomValidity('Appointments are only available between 9:00 AM and 6:00 PM.');
+                    this.classList.add('is-invalid');
+                } else {
+                    this.setCustomValidity('');
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+        
+        // Reset button functionality
+        const resetBtn = form.querySelector('button[type="reset"]');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                form.classList.remove('was-validated');
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-calendar-check me-2"></i>Schedule Appointment';
+                
+                // Reset to default values
+                if (dateInput) dateInput.value = minDate;
+                if (timeInput) timeInput.value = '10:00';
+            });
+        }
+    });
+</script>
+
+{% endblock appoinment %}

@@ -1,0 +1,573 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block adoption %}
+<div class="container" style="padding-top: 6rem; padding-bottom: 4rem; min-height: 92vh;">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+      <!-- Header Section -->
+      <div class="text-center mb-5">
+        <h1 class="fw-bold text-primary mb-3">Adoption Request Form</h1>
+        <p class="lead text-muted">Fill out the form below to start your adoption journey with us.</p>
+      </div>
+
+      <!-- Messages Display -->
+      <div class="container mb-4">
+        {% for msg in messages %}
+          <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                    alert-dismissible fade show shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                       me-2 fs-5"></i>
+              <strong>{{ msg }}</strong>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if has_approved_request %}
+        <!-- Already Approved Request Section -->
+        <div class="card border-success shadow-lg mb-5">
+          <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+              <i class="bi bi-check-circle-fill me-2"></i>Adoption Request Approved
+            </h4>
+          </div>
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="bi bi-balloon-heart text-success" style="font-size: 4rem;"></i>
+            </div>
+            <h3 class="text-success mb-3">Congratulations! 🎉</h3>
+            <p class="lead mb-4">Your adoption request has been approved. You can now proceed to select a child.</p>
+            
+            <div class="row justify-content-center">
+              <div class="col-md-6 col-lg-4">
+                <a class="btn btn-lg btn-warning text-dark fw-bold w-100 py-3" 
+                   href="{% url 'usr_ch_li' org_id %}" 
+                   style="border-radius: 15px; background: linear-gradient(135deg, #f8b864, #ff9900);">
+                  <i class="bi bi-heart-fill me-2"></i>Select a Child
+                </a>
+              </div>
+            </div>
+            
+            <p class="text-muted mt-4">
+              <small><i class="bi bi-info-circle me-1"></i>You'll be redirected to our children's profiles</small>
+            </p>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Criminal History Alert Modal -->
+        <div class="modal fade" id="criminalHistoryModal" tabindex="-1" aria-labelledby="criminalHistoryModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="criminalHistoryModalLabel">
+                  <i class="bi bi-shield-exclamation me-2"></i>Adoption Eligibility Issue
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="text-center mb-4">
+                  <i class="bi bi-x-circle-fill text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <h4 class="text-center text-danger mb-3">Sorry, You Are Not Eligible</h4>
+                <p class="lead text-center">
+                  Individuals with a criminal history are not eligible to adopt children according to our organization's policy and government regulations.
+                </p>
+                <div class="alert alert-warning mt-3">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <strong>Note:</strong> This restriction ensures the safety and well-being of children in our care.
+                </div>
+              </div>
+              <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                  <i class="bi bi-arrow-left me-1"></i>Return to Form
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-primary px-4">
+                  <i class="bi bi-house me-1"></i>Go to Home
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Adoption Request Form -->
+        <div class="card shadow-lg border-0">
+          <div class="card-header bg-primary text-white py-4">
+            <h3 class="mb-0">
+              <i class="bi bi-file-earmark-text me-2"></i>Adoption Application
+            </h3>
+            <p class="mb-0 opacity-75">Please provide accurate information for faster processing</p>
+          </div>
+          
+          <div class="card-body p-4 p-lg-5">
+            <form method="post" enctype="multipart/form-data" id="adoptionForm" class="needs-validation" novalidate>
+              {% csrf_token %}
+              
+              <!-- Personal Information Section -->
+              <div class="mb-5">
+                <h4 class="border-bottom pb-2 mb-4 text-primary">
+                  <i class="bi bi-person-circle me-2"></i>Personal Information
+                </h4>
+                <div class="row g-4">
+                  <!-- Full Name -->
+                  <div class="col-md-6">
+                    <label for="{{ form.full_name.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-person-badge me-1"></i>Full Name *
+                    </label>
+                    {{ form.full_name }}
+                    <div class="invalid-feedback">
+                      Please provide your full name.
+                    </div>
+                  </div>
+                  
+                  <!-- Email -->
+                  <div class="col-md-6">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-envelope me-1"></i>Email Address *
+                    </label>
+                    {{ form.email }}
+                    <div class="invalid-feedback">
+                      Please provide a valid email address.
+                    </div>
+                  </div>
+                  
+                  <!-- Phone -->
+                  <div class="col-md-6">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-telephone me-1"></i>Phone Number *
+                    </label>
+                    {{ form.phone }}
+                    <div class="invalid-feedback">
+                      Please provide a valid phone number.
+                    </div>
+                  </div>
+                  
+                  <!-- Age -->
+                  <div class="col-md-6">
+                    <label for="{{ form.age.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-calendar3 me-1"></i>Age *
+                    </label>
+                    {{ form.age }}
+                    <div class="invalid-feedback">
+                      You must be 18 years or older to adopt.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Residential & Professional Information -->
+              <div class="mb-5">
+                <h4 class="border-bottom pb-2 mb-4 text-primary">
+                  <i class="bi bi-house-door me-2"></i>Residential & Professional Information
+                </h4>
+                <div class="row g-4">
+                  <!-- Address -->
+                  <div class="col-12">
+                    <label for="{{ form.address.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-geo-alt me-1"></i>Complete Address *
+                    </label>
+                    {{ form.address }}
+                    <div class="invalid-feedback">
+                      Please provide your complete address.
+                    </div>
+                  </div>
+                  
+                  <!-- Marital Status -->
+                  <div class="col-md-6">
+                    <label for="{{ form.marital_status.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-people me-1"></i>Marital Status *
+                    </label>
+                    {{ form.marital_status }}
+                  </div>
+                  
+                  <!-- Occupation -->
+                  <div class="col-md-6">
+                    <label for="{{ form.occupation.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-briefcase me-1"></i>Occupation *
+                    </label>
+                    {{ form.occupation }}
+                    <div class="invalid-feedback">
+                      Please provide your occupation.
+                    </div>
+                  </div>
+                  
+                  <!-- Annual Income -->
+                  <div class="col-md-6">
+                    <label for="{{ form.income.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-cash-stack me-1"></i>Annual Income (₹) *
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text">₹</span>
+                      {{ form.income }}
+                    </div>
+                    <div class="invalid-feedback">
+                      Please provide your annual income.
+                    </div>
+                  </div>
+                  
+                  <!-- Criminal History -->
+                  <div class="col-md-6">
+                    <label for="{{ form.criminal_history.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-shield-exclamation me-1"></i>Criminal History *
+                    </label>
+                    {{ form.criminal_history }}
+                    <div class="form-text text-warning fw-semibold">
+                      <i class="bi bi-exclamation-triangle me-1"></i>Selecting "Yes" will make you ineligible for adoption
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Additional Information -->
+              <div class="mb-5">
+                <h4 class="border-bottom pb-2 mb-4 text-primary">
+                  <i class="bi bi-file-text me-2"></i>Additional Information
+                </h4>
+                <div class="row g-4">
+                  <!-- Subject -->
+                  <div class="col-12">
+                    <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-card-heading me-1"></i>Application Subject *
+                    </label>
+                    {{ form.subject }}
+                    <small class="text-muted">Brief description of your adoption request</small>
+                    <div class="invalid-feedback">
+                      Please provide a subject for your application.
+                    </div>
+                  </div>
+                  
+                  <!-- ID Proof -->
+                  <div class="col-md-6">
+                    <label for="{{ form.id_proof.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-file-earmark-arrow-up me-1"></i>ID Proof Document *
+                    </label>
+                    <div class="custom-file-upload">
+                      {{ form.id_proof }}
+                    </div>
+                    <small class="text-muted">Upload Aadhar Card, Passport, or Driver's License</small>
+                    <div class="invalid-feedback">
+                      Please upload a valid ID proof document.
+                    </div>
+                  </div>
+                  
+                  <!-- Additional Comments -->
+                  <div class="col-md-6">
+                    <label for="{{ form.additional_comments.id_for_label }}" class="form-label fw-semibold">
+                      <i class="bi bi-chat-left-text me-1"></i>Additional Comments
+                    </label>
+                    {{ form.additional_comments }}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Terms & Conditions -->
+              <div class="mb-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                  <label class="form-check-label" for="termsCheck">
+                    I hereby declare that all information provided is true and correct to the best of my knowledge.
+                    I understand that any false information may lead to rejection of my application.
+                  </label>
+                  <div class="invalid-feedback">
+                    You must agree to the terms before submitting.
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Submit Button -->
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-3 border-top">
+                <button type="reset" class="btn btn-outline-secondary px-4 py-2 me-md-2">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Reset Form
+                </button>
+                <button type="submit" class="btn btn-success px-5 py-2 fw-bold" id="submitBtn">
+                  <i class="bi bi-send-check me-2"></i>Submit Application
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  }
+
+  .card {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+  }
+
+  .card-header {
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid #e1e5eb;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .form-label {
+    color: #2e3a59;
+    margin-bottom: 8px;
+  }
+
+  .invalid-feedback {
+    font-size: 0.875rem;
+  }
+
+  textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .custom-file-upload input[type="file"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .custom-file-upload input[type="file"]:hover {
+    border-color: #4e73df;
+    background-color: #eef2ff;
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+  }
+
+  .btn-warning {
+    border-radius: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(248, 184, 100, 0.3);
+  }
+
+  /* Criminal History Warning */
+  .criminal-warning {
+    display: none;
+    background: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+    border: 2px solid #f44336;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    animation: shake 0.5s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  /* Style for criminal history select when Yes is selected */
+  .criminal-yes {
+    border-color: #f44336 !important;
+    background-color: #ffebee !important;
+    color: #c62828 !important;
+  }
+
+  /* Modal styles */
+  .modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    border-bottom: none;
+  }
+
+  .modal-body {
+    padding: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding-top: 4rem;
+      padding-bottom: 2rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem !important;
+    }
+    
+    h1 {
+      font-size: 1.75rem;
+    }
+    
+    .modal-dialog {
+      margin: 1rem;
+    }
+  }
+
+  /* Animation for success message */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card {
+    animation: fadeInUp 0.5s ease-out;
+  }
+</style>
+
+<script>
+  // Form validation and criminal history check
+  (function () {
+    'use strict'
+    
+    // Get form elements
+    const form = document.getElementById('adoptionForm');
+    const criminalHistorySelect = document.getElementById('{{ form.criminal_history.id_for_label }}');
+    const submitBtn = document.getElementById('submitBtn');
+    const criminalHistoryModal = new bootstrap.Modal(document.getElementById('criminalHistoryModal'));
+    
+    // Add warning text under criminal history field
+    const criminalWarningDiv = document.createElement('div');
+    criminalWarningDiv.className = 'criminal-warning mt-2';
+    criminalWarningDiv.innerHTML = `
+      <div class="d-flex align-items-center">
+        <i class="bi bi-x-circle-fill text-danger fs-4 me-3"></i>
+        <div>
+          <h6 class="text-danger mb-1">Adoption Not Possible</h6>
+          <p class="mb-0 small">Individuals with criminal history cannot adopt children. Please reconsider your application.</p>
+        </div>
+      </div>
+    `;
+    
+    if (criminalHistorySelect) {
+      criminalHistorySelect.parentNode.appendChild(criminalWarningDiv);
+    }
+    
+    // Criminal history change handler
+    if (criminalHistorySelect) {
+      criminalHistorySelect.addEventListener('change', function() {
+        if (this.value === 'Yes') {
+          // Show warning and disable form
+          this.classList.add('criminal-yes');
+          criminalWarningDiv.style.display = 'block';
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="bi bi-slash-circle me-2"></i>Cannot Submit';
+          submitBtn.classList.remove('btn-success');
+          submitBtn.classList.add('btn-danger');
+          
+          // Show modal after a short delay
+          setTimeout(() => {
+            criminalHistoryModal.show();
+          }, 500);
+        } else {
+          // Remove warning and enable form
+          this.classList.remove('criminal-yes');
+          criminalWarningDiv.style.display = 'none';
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="bi bi-send-check me-2"></i>Submit Application';
+          submitBtn.classList.remove('btn-danger');
+          submitBtn.classList.add('btn-success');
+        }
+      });
+    }
+    
+    // Form submission handler
+    form.addEventListener('submit', function (event) {
+      // Prevent submission if criminal history is Yes
+      if (criminalHistorySelect && criminalHistorySelect.value === 'Yes') {
+        event.preventDefault();
+        event.stopPropagation();
+        criminalHistoryModal.show();
+        return false;
+      }
+      
+      // Regular Bootstrap validation
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      
+      form.classList.add('was-validated');
+    }, false);
+    
+    // Age validation
+    const ageInput = document.getElementById('{{ form.age.id_for_label }}');
+    if (ageInput) {
+      ageInput.addEventListener('change', function() {
+        if (this.value < 18) {
+          this.setCustomValidity('You must be 18 years or older to adopt.');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+    }
+    
+    // File input styling
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+      input.addEventListener('change', function() {
+        const fileName = this.files[0]?.name || 'No file chosen';
+        const label = this.previousElementSibling || this.parentElement.previousElementSibling;
+        if (label && label.tagName === 'LABEL') {
+          // Remove previous file name if exists
+          const existingFileName = label.querySelector('.file-name-display');
+          if (existingFileName) {
+            existingFileName.remove();
+          }
+          
+          const small = document.createElement('small');
+          small.className = 'file-name-display text-success ms-2';
+          small.innerHTML = `<i class="bi bi-check-circle"></i> ${fileName}`;
+          label.appendChild(small);
+        }
+      });
+    });
+    
+    // Initialize form validation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Trigger criminal history check if already selected
+      if (criminalHistorySelect && criminalHistorySelect.value === 'Yes') {
+        criminalHistorySelect.dispatchEvent(new Event('change'));
+      }
+    });
+    
+  })()
+</script>
+{% endblock adoption %}

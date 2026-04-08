@@ -1,0 +1,33 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Donations{% endblock %}
+
+{% block content %}
+<h1>Donations</h1>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Organization</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in donations %}
+        <tr>
+            <td>{{ d.id }}</td>
+            <td>{{ d.personal_details.username }}</td>
+            <td>{{ d.organization.name }}</td>
+            <td>{{ d.amount }}</td>
+            <td>{{ d.category }}</td>
+            <td>{{ d.status }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No donations found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

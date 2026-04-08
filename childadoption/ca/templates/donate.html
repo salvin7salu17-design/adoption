@@ -1,0 +1,266 @@
+<!-- donate.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .payment-container {
+        min-height: 100vh;
+        padding: 120px 20px 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+    }
+    
+    .payment-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .payment-header {
+        margin-bottom: 30px;
+    }
+    
+    .payment-icon {
+        width: 80px;
+        height: 80px;
+        background: #28a745;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 2rem;
+    }
+    
+    .payment-details {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .detail-row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .detail-value {
+        font-weight: 600;
+        color: #4361ee;
+    }
+    
+    .amount-display {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #28a745;
+        margin: 20px 0;
+    }
+    
+    #rzp-button1 {
+        width: 100%;
+        padding: 16px;
+        background: #4361ee;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+    
+    #rzp-button1:hover {
+        background: #3a0ca3;
+    }
+    
+    .cancel-btn {
+        display: block;
+        width: 100%;
+        padding: 16px;
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        text-decoration: none;
+        text-align: center;
+    }
+    
+    .cancel-btn:hover {
+        background: #e9ecef;
+        text-decoration: none;
+        color: #6c757d;
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <div class="payment-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <h1>Complete Your Donation</h1>
+            <p class="text-muted">Secure payment powered by Razorpay</p>
+            {% if messages %}
+            <div style="margin-top: 15px;">
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert" style="margin: 5px 0;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="payment-details">
+            <div class="detail-row">
+                <span class="detail-label">Organization:</span>
+                <span class="detail-value">{{ organization.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Donation Category:</span>
+                <span class="detail-value">{{ donation.get_category_display }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Donor Name:</span>
+                <span class="detail-value">{{ user_name }}</span>
+            </div>
+            
+            <div class="amount-display">
+                ₹{{ amount_display }}
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Order ID:</span>
+                <span class="detail-value">{{ order_id|truncatechars:15 }}</span>
+            </div>
+        </div>
+        
+        <button id="rzp-button1" class="btn-submit">
+            <i class="fas fa-lock me-2"></i>Pay ₹{{ amount_display }}
+        </button>
+        
+        <a href="{% url 'home' %}" class="cancel-btn">
+            <i class="fas fa-times me-2"></i>Cancel Payment
+        </a>
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    // Debug logging
+    console.log('=== DONATION PAYMENT PAGE LOADED ===');
+    console.log('API Key:', "{{ api_key }}" ? 'Present' : 'Missing');
+    console.log('Order ID:', "{{ order_id }}");
+    console.log('Amount:', "{{ amount }}" + ' paise');
+    console.log('Donation ID:', "{{ donation.id }}");
+    
+    if (!("{{ api_key }}")) {
+        console.error('ERROR: Razorpay API Key is missing!');
+        alert('Payment service is not configured. Please contact support.');
+    }
+    
+    if (!("{{ order_id }}")) {
+        console.error('ERROR: Order ID is missing!');
+        alert('Payment order could not be created. Please try again.');
+    }
+    
+    var options = {
+        "key": "{{ api_key }}",
+        "amount": "{{ amount }}",
+        "currency": "INR",
+        "name": "Take Care Foundation",
+        "description": "Donation to {{ organization.name }}",
+        "order_id": "{{ order_id }}",
+        "handler": function (response) {
+            console.log('✅ Payment successful:', response);
+            window.location.href = "{% url 'payment_success' %}?payment_id=" + response.razorpay_payment_id + 
+                                  "&order_id=" + response.razorpay_order_id + 
+                                  "&signature=" + response.razorpay_signature +
+                                  "&donation_id={{ donation.id }}&type=donation";
+        },
+        "prefill": {
+            "name": "{{ user_name }}",
+            "email": "{{ user_email }}",
+            "contact": "{{ user_contact }}"
+        },
+        "theme": {
+            "color": "#4361ee"
+        },
+        "modal": {
+            "ondismiss": function() {
+                console.log('⚠️ Payment modal closed by user');
+            }
+        }
+    };
+    
+    var rzp1 = new Razorpay(options);
+    
+    // Auto-open payment modal when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded - checking if we should auto-open modal');
+        // Check if we have a valid order ID and amount
+        if ("{{ order_id }}" && "{{ amount }}") {
+            // Small delay to ensure Razorpay library is loaded
+            setTimeout(function() {
+                console.log('🔵 Auto-opening Razorpay payment modal');
+                try {
+                    rzp1.open();
+                } catch(error) {
+                    console.error('Error opening Razorpay modal:', error);
+                    alert('Error opening payment gateway. Please click "Pay Now" button.');
+                }
+            }, 1000);
+        } else {
+            console.error('Cannot auto-open modal - missing order_id or amount');
+        }
+    });
+    
+    // Also keep the manual button click handler
+    var button = document.getElementById('rzp-button1');
+    if (button) {
+        button.onclick = function(e) {
+            console.log('💳 Pay button clicked - opening Razorpay');
+            try {
+                rzp1.open();
+            } catch(error) {
+                console.error('Error opening payment gateway:', error);
+            }
+            e.preventDefault();
+            return false;
+        }
+    } else {
+        console.warn('Pay button not found in DOM');
+    }
+</script>
+{% endblock %}
+
+

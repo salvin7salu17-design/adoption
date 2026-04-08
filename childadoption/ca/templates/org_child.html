@@ -1,0 +1,572 @@
+{% extends 'organization_panel.html' %}
+{%load static%}
+{%block home%}
+<style>
+    /* Custom Styles for Child Management Page */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .page-header p {
+        opacity: 0.9;
+        margin: 10px 0 0 0;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+        border: none;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .children-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 20px;
+        border-bottom: none;
+    }
+    
+    .table-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .table td {
+        padding: 20px 15px;
+        vertical-align: middle;
+        border-color: #f1f1f1;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .child-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #f0f0f0;
+    }
+    
+    .child-avatar-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+    
+    .gender-badge {
+        display: inline-block;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .gender-male {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: #2980b9;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .gender-female {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .gender-other {
+        background-color: rgba(155, 89, 182, 0.15);
+        color: #8e44ad;
+        border: 1px solid rgba(155, 89, 182, 0.2);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 70px;
+        text-align: center;
+    }
+    
+    .action-btn i {
+        margin-right: 5px;
+        font-size: 0.9rem;
+    }
+    
+    .edit-btn {
+        background-color: rgba(243, 156, 18, 0.15);
+        color: #d35400;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .edit-btn:hover {
+        background-color: #f39c12;
+        color: white;
+        border-color: #f39c12;
+        transform: translateY(-2px);
+    }
+    
+    .delete-btn {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .delete-btn:hover {
+        background-color: #e74c3c;
+        color: white;
+        border-color: #e74c3c;
+        transform: translateY(-2px);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .empty-icon {
+        font-size: 5rem;
+        color: #ddd;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .add-child-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .add-child-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 0;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    
+    .form-control, .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .badge-info {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: #2980b9;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .badge-pink {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .child-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.05rem;
+    }
+    
+    .child-detail {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 3px;
+    }
+</style>
+
+<div class="content-wrapper">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-child me-2"></i>Children Management</h1>
+                <p class="mb-0">Manage and oversee all children under your organization's care</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="button" class="add-child-btn" data-bs-toggle="modal" data-bs-target="#addChildModal">
+                    <i class="fas fa-plus-circle"></i> Add New Child
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Messages/Alerts -->
+    {% for msg in messages %}
+    <div class="alert {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-2"></i>
+            <div>
+                <strong>{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error:{% else %}Success:{% endif %}</strong> {{ msg }}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    
+    <!-- Organization Overview -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="stats-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2"><i class="fas fa-building me-2"></i>{{ organization.name }}</h4>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ organization.address|truncatewords:10 }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="stats-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="mb-0">{{ childs|length }}</h3>
+                        <p class="text-muted mb-0">Children in Care</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Children Table -->
+    <div class="children-table">
+        <div class="table-header">
+            <h4><i class="fas fa-list me-2"></i>All Children</h4>
+        </div>
+        
+        {% if childs|length == 0 %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-child"></i>
+            </div>
+            <h3 class="mb-3">No Children Added Yet</h3>
+            <p class="text-muted mb-4">Start by adding your first child to the organization. Click the "Add New Child" button above.</p>
+            <button type="button" class="add-child-btn" data-bs-toggle="modal" data-bs-target="#addChildModal">
+                <i class="fas fa-plus-circle"></i> Add Your First Child
+            </button>
+        </div>
+        {% else %}
+        <!-- Children Table -->
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Year Joined</th>
+                        <th>Blood Group</th>
+                        <th>Education</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for child in childs %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {% if child.image %}
+                            <img src="{{ child.image.url }}" class="child-avatar" alt="{{ child.name }}">
+                            {% else %}
+                            <div class="child-avatar-placeholder">
+                                <i class="fas fa-child"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="child-name">{{ child.name }}</div>
+                            {% if child.blood_group or child.education %}
+                            <div class="child-detail">
+                                {% if child.blood_group %}<span class="me-3"><i class="fas fa-tint me-1"></i>{{ child.blood_group }}</span>{% endif %}
+                                {% if child.education %}<span><i class="fas fa-graduation-cap me-1"></i>{{ child.education|truncatewords:2 }}</span>{% endif %}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ child.age }}</td>
+                        <td>
+                            {% if child.gender == 'male' %}
+                            <span class="gender-badge gender-male">
+                                <i class="fas fa-mars me-1"></i> Male
+                            </span>
+                            {% elif child.gender == 'female' %}
+                            <span class="gender-badge gender-female">
+                                <i class="fas fa-venus me-1"></i> Female
+                            </span>
+                            {% else %}
+                            <span class="gender-badge gender-other">
+                                <i class="fas fa-user me-1"></i> Other
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ child.since }}</td>
+                        <td>{{ child.blood_group|default:"-" }}</td>
+                        <td>{{ child.education|default:"-" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'child-edit' child.id %}" class="action-btn edit-btn">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'child_delete' child.id %}" class="action-btn delete-btn" 
+                                   onclick="return confirm('Are you sure you want to delete {{ child.name }}? This action cannot be undone.')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Child Modal -->
+<div class="modal fade" id="addChildModal" tabindex="-1" aria-labelledby="addChildModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addChildModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Child
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'chi' %}" id="childForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Child Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger small mt-2">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Age *</label>
+                            {{ form.age }}
+                            {% if form.age.errors %}
+                            <div class="text-danger small mt-2">{{ form.age.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gender *</label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                            <div class="text-danger small mt-2">{{ form.gender.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Year Joined *</label>
+                            {{ form.since }}
+                            <small class="text-muted d-block mt-1">Year the child joined your organization</small>
+                            {% if form.since.errors %}
+                            <div class="text-danger small mt-2">{{ form.since.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Blood Group</label>
+                            {{ form.blood_group }}
+                            {% if form.blood_group.errors %}
+                            <div class="text-danger small mt-2">{{ form.blood_group.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Education</label>
+                            {{ form.education }}
+                            {% if form.education.errors %}
+                            <div class="text-danger small mt-2">{{ form.education.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Child Photo</label>
+                            <div class="input-group">
+                                {{ form.image }}
+                            </div>
+                            <small class="text-muted d-block mt-1">Upload a clear photo of the child (optional)</small>
+                            {% if form.image.errors %}
+                            <div class="text-danger small mt-2">{{ form.image.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                        <i class="fas fa-save me-2"></i> Add Child
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form validation
+    const childForm = document.getElementById('childForm');
+    if (childForm) {
+        childForm.addEventListener('submit', function(e) {
+            // Basic client-side validation
+            const requiredFields = childForm.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill all required fields marked with *');
+            }
+        });
+    }
+    
+    // Show modal if there are form errors
+    {% if form.errors %}
+    var modal = new bootstrap.Modal(document.getElementById('addChildModal'));
+    modal.show();
+    {% endif %}
+    
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+
+<!-- Add Animate.css for animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+{%endblock%}

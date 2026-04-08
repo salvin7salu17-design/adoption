@@ -1,0 +1,899 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sety %}
+<div class="container-fluid" style="min-height: 100vh; padding-top: 6rem; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <div class="container py-5">
+        <!-- Header Section -->
+        <div class="text-center mx-auto mb-5 pb-4" style="max-width: 800px;">
+            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-semibold px-4 py-2 mb-3 rounded-pill">
+                <i class="bi bi-heart-fill me-2"></i>My Sponsored Children
+            </span>
+            <h1 class="display-5 fw-bold mb-3 text-dark">Lifetime Sponsorships</h1>
+            <p class="lead text-muted mb-4">
+                View all the wonderful children you're supporting through lifetime sponsorship. 
+                Your generosity makes a lasting difference in their lives.
+            </p>
+            
+            <!-- Stats Cards -->
+            <div class="row justify-content-center g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3">
+                                <i class="bi bi-people-fill fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-0">{{ life_time_sp.count }}</h2>
+                            <p class="text-muted mb-0">Sponsored Children</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-circle bg-success bg-opacity-10 text-success mx-auto mb-3">
+                                <i class="bi bi-calendar-check fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-0">
+                                {% now "Y" as current_year %}
+                                {% with active_count=0 %}
+                                    {% for ch in life_time_sp %}
+                                        {% if ch.date_to.year|add:0 >= current_year|add:0 %}
+                                            {% with active_count=active_count|add:1 %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ active_count }}
+                                {% endwith %}
+                            </h2>
+                            <p class="text-muted mb-0">Active Sponsorships</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-circle bg-warning bg-opacity-10 text-warning mx-auto mb-3">
+                                <i class="bi bi-gift-fill fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-0">
+                                {% with total_impact=0 %}
+                                    {% for ch in life_time_sp %}
+                                        {% with total_impact=total_impact|add:1 %}{% endwith %}
+                                    {% endfor %}
+                                    {% widthratio total_impact 1 3 %}
+                                {% endwith %}
+                            </h2>
+                            <p class="text-muted mb-0">Total Impact</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Display -->
+        <div class="container mb-5">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                        alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                             me-2 fs-5"></i>
+                    <strong>{{ msg }}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Sponsorships Grid -->
+        {% if life_time_sp %}
+        <div class="row g-4" id="sponsorshipsGrid">
+            {% for ch in life_time_sp %}
+            <div class="col-lg-4 col-md-6 sponsorship-card" 
+                 data-status="{% if ch.date_to.year|add:0 >= current_year|add:0 %}active{% else %}completed{% endif %}"
+                 data-created="{{ ch.created_at|date:'Y-m-d' }}">
+                <div class="card border-0 shadow-lg h-100 overflow-hidden">
+                    <!-- Sponsorship Header -->
+                    <div class="card-header py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-white bg-opacity-20 text-white me-3">
+                                    <i class="bi bi-heart-fill"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-white mb-0">Sponsorship #{{ forloop.counter }}</h5>
+                                    <small class="text-white opacity-75">Lifetime Support</small>
+                                </div>
+                            </div>
+                            <span class="badge {% if ch.date_to.year|add:0 >= current_year|add:0 %}bg-success{% else %}bg-warning{% endif %} 
+                                      px-3 py-2 rounded-pill">
+                                <i class="bi {% if ch.date_to.year|add:0 >= current_year|add:0 %}bi-check-circle{% else %}bi-clock-history{% endif %} me-1"></i>
+                                {% if ch.date_to.year|add:0 >= current_year|add:0 %}Active{% else %}Completed{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Child Information -->
+                    <div class="card-body p-4">
+                        <!-- Child Image & Basic Info -->
+                        <div class="text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                {% if ch.child.image %}
+                                <img src="{{ ch.child.image.url }}" 
+                                     class="rounded-circle border-4 border-white shadow" 
+                                     alt="{{ ch.child.name }}"
+                                     width="120" 
+                                     height="120"
+                                     style="object-fit: cover;">
+                                {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border-4 border-white shadow"
+                                     style="width: 120px; height: 120px;">
+                                    <i class="bi bi-person-circle text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                {% endif %}
+                                <div class="position-absolute bottom-0 end-0">
+                                    <span class="badge bg-primary px-3 py-2 rounded-pill">
+                                        <i class="bi bi-{% if ch.child.gender == 'male' %}gender-male{% else %}gender-female{% endif %} me-1"></i>
+                                        {{ ch.child.gender|title }}
+                                    </span>
+                                </div>
+                            </div>
+                            <h3 class="fw-bold mt-3 mb-1">{{ ch.child.name }}</h3>
+                            <p class="text-muted mb-0">Sponsored Child</p>
+                        </div>
+
+                        <!-- Child Details -->
+                        <div class="row mb-4">
+                            <div class="col-6 mb-3">
+                                <div class="child-detail">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-primary bg-opacity-10 text-primary me-3">
+                                            <i class="bi bi-calendar3"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Age</small>
+                                            <span class="fw-bold">{{ ch.child.age }} years</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="child-detail">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                                            <i class="bi bi-heart-pulse"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">With Us</small>
+                                            <span class="fw-bold">{{ ch.child.since }} years</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="child-detail">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-success bg-opacity-10 text-success me-3">
+                                            <i class="bi bi-droplet-fill"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Blood Group</small>
+                                            <span class="fw-bold">{{ ch.child.blood_group|default:"N/A" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="child-detail">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-warning bg-opacity-10 text-warning me-3">
+                                            <i class="bi bi-book-fill"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Education</small>
+                                            <span class="fw-bold">{{ ch.child.education|default:"Studying"|truncatechars:15 }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sponsorship Timeline -->
+                        <div class="sponsorship-timeline mb-4">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-calendar-range me-2"></i>Sponsorship Period
+                            </h6>
+                            <div class="timeline-progress">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <small class="text-muted">Started</small>
+                                    <small class="text-muted">Valid Until</small>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {% widthratio ch.progress_days ch.total_days 100 %}%"
+                                         aria-valuenow="{% widthratio ch.progress_days ch.total_days 100 %}" 
+                                         aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="fw-semibold">{{ ch.created_at|date:"M Y" }}</small>
+                                    <small class="fw-semibold">{{ ch.date_to|date:"M Y" }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Information -->
+                        <div class="organization-info mb-4">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-building me-2"></i>Care Organization
+                            </h6>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                                    <i class="bi bi-house-heart"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ ch.child.organization.name }}</h6>
+                                    <p class="text-muted mb-0">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        {{ ch.child.organization.address|default:"Location not specified"|truncatechars:30 }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sponsorship Details -->
+                        <div class="sponsorship-details mb-4">
+                            <h6 class="fw-semibold mb-3 text-primary">
+                                <i class="bi bi-info-circle me-2"></i>Sponsorship Details
+                            </h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="detail-item">
+                                        <i class="bi bi-calendar-plus text-primary me-2"></i>
+                                        <small class="text-muted">Started:</small>
+                                        <span class="fw-semibold">{{ ch.created_at|date:"d M Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="detail-item">
+                                        <i class="bi bi-calendar-check text-primary me-2"></i>
+                                        <small class="text-muted">Valid Until:</small>
+                                        <span class="fw-semibold">{{ ch.date_to|date:"d M Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <div class="detail-item">
+                                        <i class="bi bi-heart text-primary me-2"></i>
+                                        <small class="text-muted">Sponsorship Type:</small>
+                                        <span class="fw-semibold">Lifetime Support</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'ch_n' ch.id %}" class="btn btn-primary btn-lg fw-semibold py-3">
+                                <i class="bi bi-gift-fill me-2"></i>View Needs & Support
+                            </a>
+                            
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#childModal{{ ch.id }}">
+                                    <i class="bi bi-info-circle me-1"></i>Quick View
+                                </button>
+                                <button type="button" class="btn btn-outline-success"
+                                        onclick="sendMessageToOrg('{{ ch.child.organization.name }}')">
+                                    <i class="bi bi-chat-dots me-1"></i>Message
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer bg-light border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-clock-history me-1"></i>
+                                Updated {{ ch.updated_at|timesince }} ago
+                            </small>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="downloadReport({{ ch.id }})">
+                                            <i class="bi bi-download me-2"></i>Download Report
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="shareSponsorship('{{ ch.child.name }}')">
+                                            <i class="bi bi-share me-2"></i>Share
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" 
+                                           onclick="reportIssue({{ ch.id }}, '{{ ch.child.name }}')">
+                                            <i class="bi bi-flag me-2"></i>Report Issue
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick View Modal -->
+                <div class="modal fade" id="childModal{{ ch.id }}" tabindex="-1" 
+                     aria-labelledby="childModalLabel{{ ch.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <h5 class="modal-title text-white" id="childModalLabel{{ ch.id }}">
+                                    <i class="bi bi-person-badge me-2"></i>{{ ch.child.name }} - Quick View
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="text-center mb-4">
+                                    {% if ch.child.image %}
+                                    <img src="{{ ch.child.image.url }}" 
+                                         class="rounded-circle mb-3 border-4 border-primary" 
+                                         alt="{{ ch.child.name }}"
+                                         width="100" 
+                                         height="100"
+                                         style="object-fit: cover;">
+                                    {% else %}
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3 border-4 border-primary"
+                                         style="width: 100px; height: 100px;">
+                                        <i class="bi bi-person-circle text-muted" style="font-size: 2.5rem;"></i>
+                                    </div>
+                                    {% endif %}
+                                    <h4 class="fw-bold">{{ ch.child.name }}</h4>
+                                    <p class="text-muted">Your Sponsored Child</p>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <div class="detail-item-small">
+                                            <i class="bi bi-gender-ambiguous text-primary me-2"></i>
+                                            <small class="text-muted">Gender:</small>
+                                            <span class="fw-semibold">{{ ch.child.gender|title }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="detail-item-small">
+                                            <i class="bi bi-calendar3 text-primary me-2"></i>
+                                            <small class="text-muted">Age:</small>
+                                            <span class="fw-semibold">{{ ch.child.age }} years</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="detail-item-small">
+                                            <i class="bi bi-heart-fill text-primary me-2"></i>
+                                            <small class="text-muted">With Us:</small>
+                                            <span class="fw-semibold">{{ ch.child.since }} years</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="detail-item-small">
+                                            <i class="bi bi-award text-primary me-2"></i>
+                                            <small class="text-muted">Status:</small>
+                                            <span class="badge {% if ch.date_to.year|add:0 >= current_year|add:0 %}bg-success{% else %}bg-warning{% endif %}">
+                                                {% if ch.date_to.year|add:0 >= current_year|add:0 %}Active{% else %}Completed{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info mt-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    You've been sponsoring <strong>{{ ch.child.name }}</strong> since 
+                                    <strong>{{ ch.created_at|date:"F Y" }}</strong>. 
+                                    {% if ch.date_to.year|add:0 >= current_year|add:0 %}
+                                    Your sponsorship is active until <strong>{{ ch.date_to|date:"F Y" }}</strong>.
+                                    {% else %}
+                                    Your sponsorship was completed in <strong>{{ ch.date_to|date:"F Y" }}</strong>.
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-4">
+                                    <a href="{% url 'ch_n' ch.id %}" class="btn btn-primary">
+                                        <i class="bi bi-gift-fill me-2"></i>View All Needs
+                                    </a>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-2"></i>Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-heart text-primary" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-primary mb-3">No Sponsorships Yet</h3>
+                        <p class="lead text-muted mb-4">
+                            You haven't sponsored any children yet. Start making a difference today 
+                            by sponsoring a child in need through our lifetime sponsorship program.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-search me-2"></i>Find Children
+                            </a>
+                            <a href="#" class="btn btn-outline-primary btn-lg px-5" data-bs-toggle="modal" data-bs-target="#sponsorInfoModal">
+                                <i class="bi bi-question-circle me-2"></i>Learn More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Call to Action -->
+        {% if life_time_sp %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body text-white text-center p-5">
+                        <h2 class="display-6 fw-bold mb-3">Continue Your Impact</h2>
+                        <p class="lead mb-4 opacity-75">
+                            Your lifetime sponsorship changes lives every day. Consider expanding your impact 
+                            or sharing your story to inspire others.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="{% url 'home' %}" class="btn btn-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-plus-circle me-2"></i>Sponsor Another Child
+                            </a>
+                            <button class="btn btn-outline-light btn-lg px-5 fw-semibold" onclick="shareYourStory()">
+                                <i class="bi bi-share me-2"></i>Share Your Story
+                            </button>
+                            <button class="btn btn-outline-light btn-lg px-5 fw-semibold" onclick="downloadImpactReport()">
+                                <i class="bi bi-download me-2"></i>Download Impact Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sponsor Info Modal -->
+<div class="modal fade" id="sponsorInfoModal" tabindex="-1" aria-labelledby="sponsorInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="modal-title text-white" id="sponsorInfoModalLabel">
+                    <i class="bi bi-info-circle me-2"></i>About Lifetime Sponsorship
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-heart-fill fs-2"></i>
+                        </div>
+                        <h5 class="fw-bold">What is Lifetime Sponsorship?</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <p class="mb-3">Lifetime sponsorship is a long-term commitment to support a child's needs throughout their journey with our organization.</p>
+                        
+                        <h6 class="fw-semibold text-primary mb-3">Benefits:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Continuous support for the child's basic needs</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Education and healthcare support</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Regular updates on the child's progress</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Direct communication with the care organization</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Ability to fulfill specific needs through our platform</li>
+                        </ul>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-lightbulb me-2"></i>
+                            <strong>Tip:</strong> You can view and fulfill specific needs for each sponsored child by clicking on their card.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>Browse Children
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .child-detail {
+        background: white;
+        border-radius: 10px;
+        padding: 0.75rem;
+        border: 1px solid #e1e5eb;
+        height: 100%;
+    }
+
+    .detail-item {
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .detail-item-small {
+        padding: 0.4rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+    }
+
+    .organization-info {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .sponsorship-timeline {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e1e5eb;
+    }
+
+    .sponsorship-details {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid #e1e5eb;
+    }
+
+    .btn-group .btn {
+        border-radius: 8px !important;
+    }
+
+    .btn-group .btn:first-child {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    .btn-group .btn:last-child {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+
+    /* Animation for cards */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .sponsorship-card {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .sponsorship-card:nth-child(1) { animation-delay: 0.1s; }
+    .sponsorship-card:nth-child(2) { animation-delay: 0.2s; }
+    .sponsorship-card:nth-child(3) { animation-delay: 0.3s; }
+    .sponsorship-card:nth-child(4) { animation-delay: 0.4s; }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        .modal-dialog {
+            margin: 10px;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            border-radius: 8px !important;
+            margin-bottom: 5px;
+        }
+        
+        .btn-group .btn:first-child,
+        .btn-group .btn:last-child {
+            border-radius: 8px !important;
+        }
+        
+        .d-flex.justify-content-center.gap-3 {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .d-flex.justify-content-center.gap-3 .btn {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 10px;
+        }
+        
+        .child-detail {
+            margin-bottom: 10px;
+        }
+    }
+
+    /* Gradient text for header */
+    .display-5 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Status badges */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    /* Progress bar customization */
+    .progress {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        border-radius: 10px;
+        background: linear-gradient(90deg, #1cc88a, #36b9cc);
+    }
+
+    /* Hover effects for buttons */
+    .btn-outline-primary:hover {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #1cc88a;
+        color: white;
+    }
+
+    /* Card image hover effect */
+    .card img {
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover img {
+        transform: scale(1.05);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const sponsorshipCards = document.querySelectorAll('.sponsorship-card');
+
+        // Add filter buttons if needed
+        const filterContainer = document.querySelector('.d-flex.justify-content-center');
+        if (filterContainer && sponsorshipCards.length > 0) {
+            const filterHTML = `
+                <div class="btn-group mt-3" role="group">
+                    <button type="button" class="btn btn-outline-primary active filter-btn" data-filter="all">
+                        <i class="bi bi-list-check me-2"></i>All
+                    </button>
+                    <button type="button" class="btn btn-outline-success filter-btn" data-filter="active">
+                        <i class="bi bi-check-circle me-2"></i>Active
+                    </button>
+                    <button type="button" class="btn btn-outline-warning filter-btn" data-filter="completed">
+                        <i class="bi bi-clock-history me-2"></i>Completed
+                    </button>
+                </div>
+            `;
+            filterContainer.insertAdjacentHTML('beforeend', filterHTML);
+            
+            // Reinitialize filter buttons
+            document.querySelectorAll('.filter-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Show/hide cards based on filter
+                    sponsorshipCards.forEach(card => {
+                        const status = card.getAttribute('data-status');
+                        
+                        if (filter === 'all' || status === filter) {
+                            card.style.display = 'block';
+                            card.style.animation = 'fadeInUp 0.5s ease-out';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+
+        // Sort functionality
+        function sortSponsorships(order) {
+            const container = document.getElementById('sponsorshipsGrid');
+            const cardsArray = Array.from(sponsorshipCards).filter(card => card.style.display !== 'none');
+            
+            cardsArray.sort((a, b) => {
+                const dateA = new Date(a.getAttribute('data-created'));
+                const dateB = new Date(b.getAttribute('data-created'));
+                
+                if (order === 'asc') {
+                    return dateA - dateB;
+                } else {
+                    return dateB - dateA;
+                }
+            });
+            
+            // Reorder DOM
+            cardsArray.forEach(card => {
+                container.appendChild(card);
+            });
+        }
+
+        // Share functionality
+        window.shareSponsorship = function(childName) {
+            const shareText = `I'm sponsoring ${childName} through Take Care Foundation! Join me in making a lasting difference in a child's life.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Sponsoring ${childName}`,
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(`${shareText} ${window.location.href}`).then(() => {
+                    alert('Link copied to clipboard! You can now share it.');
+                });
+            }
+        };
+
+        // Message functionality
+        window.sendMessageToOrg = function(orgName) {
+            alert(`Message feature for ${orgName} will be available soon!`);
+        };
+
+        // Download report functionality
+        window.downloadReport = function(sponsorshipId) {
+            alert(`Downloading report for sponsorship ID: ${sponsorshipId}. Feature coming soon!`);
+        };
+
+        // Report issue functionality
+        window.reportIssue = function(sponsorshipId, childName) {
+            const issue = prompt(`Describe the issue with ${childName}'s sponsorship:`);
+            if (issue) {
+                alert(`Issue reported for ${childName}. Thank you for your feedback!`);
+                // In a real application, you would send this to your backend
+            }
+        };
+
+        // Share your story functionality
+        window.shareYourStory = function() {
+            alert('Share your sponsorship story feature coming soon!');
+        };
+
+        // Download impact report functionality
+        window.downloadImpactReport = function() {
+            alert('Impact report download feature coming soon!');
+        };
+
+        // Add today's date highlight for cards with recent updates
+        const today = new Date();
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        sponsorshipCards.forEach(card => {
+            const createdDate = new Date(card.getAttribute('data-created'));
+            if (createdDate >= sevenDaysAgo) {
+                card.querySelector('.card').style.border = '2px solid #4e73df';
+                card.querySelector('.card-header').innerHTML += 
+                    '<span class="badge bg-info ms-2"><i class="bi bi-star-fill me-1"></i>New</span>';
+            }
+        });
+
+        // Add hover animation to cards
+        sponsorshipCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    });
+
+    // Loading animation for buttons
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+
+{% endblock sety %}

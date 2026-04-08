@@ -1,0 +1,49 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Adoption Requests{% endblock %}
+
+{% block content %}
+<h1>Adoption Requests</h1>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Child Name</th>
+            <th>Organization</th>
+            <th>Status</th>
+          
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in requests %}
+        <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.personal_details.username }}</td>
+            <td>{% if r.child %}{{ r.child.name }}{% else %}-{% endif %}</td>
+            <td>{{ r.organization.name }}</td>
+            <td>
+                <span class="badge badge-{% if r.status == 'A' %}success{% elif r.status == 'R' %}danger{% else %}warning{% endif %}">
+                    {{ r.get_status_display }}
+                </span>
+            </td>
+            <td>
+                {% if r.status == 'P' %}
+                <form method="post" action="{% url 'admin_panel:update_request_status' r.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="P" {% if r.status == 'P' %}selected{% endif %}>Pending</option>
+                        <option value="A">Approve</option>
+                        <option value="R">Reject</option>
+                    </select>
+                </form>
+                {% else %}
+                <span class="text-muted">Finalized</span>
+                {% endif %}
+            </td>
+        {% empty %}
+        <tr><td colspan="6">No adoption requests found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

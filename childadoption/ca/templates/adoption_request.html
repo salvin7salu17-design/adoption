@@ -1,0 +1,631 @@
+{% extends 'organization_panel.html' %}
+{% load static %}
+{% block home %}
+<style>
+    /* Custom Styles for Adoption Requests Page */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .page-header p {
+        opacity: 0.9;
+        margin: 10px 0 0 0;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+        border: none;
+        text-align: center;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 20px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        color: #2c3e50;
+    }
+    
+    .stat-label {
+        color: #666;
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .requests-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 20px;
+        border-bottom: none;
+    }
+    
+    .table-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .table td {
+        padding: 20px 15px;
+        vertical-align: middle;
+        border-color: #f1f1f1;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-approved {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #27ae60;
+        border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+    
+    .status-rejected {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .status-pending {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: #2980b9;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .action-dropdown .btn {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .dropdown-item {
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    
+    .dropdown-item.approved:hover {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #27ae60;
+    }
+    
+    .dropdown-item.rejected:hover {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #c0392b;
+    }
+    
+    .dropdown-item.pending:hover {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #2980b9;
+    }
+    
+    .view-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 0;
+    }
+    
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    
+    .detail-section {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .detail-value {
+        color: #666;
+        padding-left: 26px;
+    }
+    
+    .document-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .document-link:hover {
+        color: #764ba2;
+        transform: translateX(5px);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .empty-icon {
+        font-size: 5rem;
+        color: #ddd;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-right: 10px;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .user-email {
+        font-size: 0.85rem;
+        color: #666;
+    }
+</style>
+
+<div class="content-wrapper">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-hands-helping me-2"></i>Adoption Requests Management</h1>
+                <p class="mb-0">Review and manage all adoption requests submitted to your organization</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="fas fa-file-contract" style="font-size: 1.8rem; color: #667eea;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Messages/Alerts -->
+    {% for msg in messages %}
+    <div class="alert {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-2"></i>
+            <div>
+                <strong>{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error:{% else %}Success:{% endif %}</strong> {{ msg }}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    
+    <!-- Statistics Cards -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <p class="stat-number">{{ adoption_requests|length }}</p>
+            <p class="stat-label">Total Requests</p>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <p class="stat-number">{{ adoption_requests|length|default:"0" }}</p>
+            <p class="stat-label">Approved</p>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <p class="stat-number">{{ adoption_requests|length|default:"0" }}</p>
+            <p class="stat-label">Pending</p>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white;">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <p class="stat-number">{{ adoption_requests|length|default:"0" }}</p>
+            <p class="stat-label">Rejected</p>
+        </div>
+    </div>
+    
+    <!-- Adoption Requests Table -->
+    <div class="requests-table">
+        <div class="table-header">
+            <h4><i class="fas fa-list me-2"></i>All Adoption Requests</h4>
+        </div>
+        
+        {% if not adoption_requests %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <h3 class="mb-3">No Adoption Requests Yet</h3>
+            <p class="text-muted mb-4">When users submit adoption requests, they will appear here for your review.</p>
+        </div>
+        {% else %}
+        <!-- Requests Table -->
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Applicant</th>
+                        <th>Request Subject</th>
+                        <th>Status</th>
+                        <th>Change Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ad in adoption_requests %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ ad.personal_details.fname|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="user-name">{{ ad.personal_details.fname }} {{ ad.personal_details.lname }}</div>
+                                    <div class="user-email">{{ ad.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ ad.subject }}</strong>
+                            <div class="text-muted" style="font-size: 0.85rem;">
+                                <i class="fas fa-calendar me-1"></i>{{ ad.created_at|date:"M d, Y" }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if ad.status == 'A' %}
+                            <span class="status-badge status-approved">
+                                <i class="fas fa-check-circle"></i> Approved
+                            </span>
+                            {% elif ad.status == 'R' %}
+                            <span class="status-badge status-rejected">
+                                <i class="fas fa-times-circle"></i> Rejected
+                            </span>
+                            {% elif ad.status == 'P' %}
+                            <span class="status-badge status-pending">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-dropdown">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                                            id="dropdownMenuButton{{ ad.id }}" data-bs-toggle="dropdown" 
+                                            aria-expanded="false">
+                                        <i class="fas fa-cog"></i> Update
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ ad.id }}">
+                                        <li>
+                                            <a class="dropdown-item approved" href="{% url 'vr' pk=ad.id sk='A' %}">
+                                                <i class="fas fa-check-circle text-success"></i> Approve Request
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item rejected" href="{% url 'vr' pk=ad.id sk='R' %}">
+                                                <i class="fas fa-times-circle text-danger"></i> Reject Request
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item pending" href="{% url 'vr' pk=ad.id sk='P' %}">
+                                                <i class="fas fa-clock text-primary"></i> Mark as Pending
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="view-btn" data-bs-toggle="modal" 
+                                    data-bs-target="#requestModal{{ ad.id }}">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Request Details Modal -->
+                    <div class="modal fade" id="requestModal{{ ad.id }}" tabindex="-1" 
+                         aria-labelledby="requestModalLabel{{ ad.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="requestModalLabel{{ ad.id }}">
+                                        <i class="fas fa-file-contract me-2"></i>Adoption Request Details
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" 
+                                            data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="detail-section">
+                                                <div class="detail-label">
+                                                    <i class="fas fa-user"></i> Applicant Information
+                                                </div>
+                                                <div class="detail-value">
+                                                    <p><strong>Full Name:</strong> {{ ad.full_name }}</p>
+                                                    <p><strong>Email:</strong> {{ ad.email }}</p>
+                                                    <p><strong>Phone:</strong> {{ ad.phone }}</p>
+                                                    <p><strong>Address:</strong> {{ ad.address }}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="detail-section">
+                                                <div class="detail-label">
+                                                    <i class="fas fa-id-card"></i> Personal Details
+                                                </div>
+                                                <div class="detail-value">
+                                                    <p><strong>Age:</strong> {{ ad.age }}</p>
+                                                    <p><strong>Marital Status:</strong> {{ ad.marital_status|title }}</p>
+                                                    <p><strong>Occupation:</strong> {{ ad.occupation }}</p>
+                                                    <p><strong>Annual Income:</strong> ₹{{ ad.income }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="detail-section">
+                                                <div class="detail-label">
+                                                    <i class="fas fa-shield-alt"></i> Background Check
+                                                </div>
+                                                <div class="detail-value">
+                                                    <p><strong>Criminal History:</strong> 
+                                                        {% if ad.criminal_history == 'Yes' %}
+                                                        <span class="badge bg-danger">Yes</span>
+                                                        {% else %}
+                                                        <span class="badge bg-success">No</span>
+                                                        {% endif %}
+                                                    </p>
+                                                    {% if ad.id_proof %}
+                                                    <p><strong>ID Proof:</strong> 
+                                                        <a href="{{ ad.id_proof.url }}" class="document-link" target="_blank">
+                                                            <i class="fas fa-external-link-alt"></i> View Document
+                                                        </a>
+                                                    </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="detail-section">
+                                                <div class="detail-label">
+                                                    <i class="fas fa-comments"></i> Additional Information
+                                                </div>
+                                                <div class="detail-value">
+                                                    <p><strong>Additional Comments:</strong></p>
+                                                    <div class="bg-light p-3 rounded">
+                                                        {{ ad.additional_comments|default:"No additional comments provided." }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if ad.feedback %}
+                                            <div class="detail-section">
+                                                <div class="detail-label">
+                                                    <i class="fas fa-sticky-note"></i> Organization Feedback
+                                                </div>
+                                                <div class="detail-value">
+                                                    <div class="bg-light p-3 rounded">
+                                                        {{ ad.feedback }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="fas fa-times me-2"></i> Close
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle" type="button" 
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-cog me-2"></i> Update Status
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'vr' pk=ad.id sk='A' %}">
+                                                    <i class="fas fa-check-circle text-success me-2"></i> Approve
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'vr' pk=ad.id sk='R' %}">
+                                                    <i class="fas fa-times-circle text-danger me-2"></i> Reject
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'vr' pk=ad.id sk='P' %}">
+                                                    <i class="fas fa-clock text-primary me-2"></i> Mark as Pending
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Initialize tooltips
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+        new bootstrap.Tooltip(tooltip);
+    });
+});
+</script>
+
+<!-- Add Animate.css for animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+{% endblock %}

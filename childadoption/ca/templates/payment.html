@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .payment-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 120px 0 60px;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.05) 0%, rgba(58, 12, 163, 0.05) 100%);
+    }
+    
+    .payment-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        animation: slideUp 0.6s ease;
+        text-align: center;
+    }
+    
+    .payment-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        color: white;
+        font-size: 2.5rem;
+    }
+    
+    .payment-details {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 30px 0;
+        text-align: left;
+    }
+    
+    .payment-button {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .payment-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
+    }
+    
+    .payment-info {
+        margin-top: 20px;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+        font-size: 1.2rem;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #4361ee;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-icon">
+            <i class="fas fa-credit-card"></i>
+        </div>
+        
+        <h1 class="mb-3">Complete Your Payment</h1>
+        <p class="text-muted">Secure payment powered by Razorpay</p>
+        
+        <div class="payment-details">
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef;">
+                <div style="font-weight: 600; color: #495057; margin-bottom: 5px;">Organization</div>
+                <div style="font-size: 1.1rem; color: #212529;">{{ donation.organization.name }}</div>
+            </div>
+            
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef;">
+                <div style="font-weight: 600; color: #495057; margin-bottom: 5px;">Donation Category</div>
+                <div style="font-size: 1.1rem; color: #212529;">{{ donation.get_category_display }}</div>
+            </div>
+            
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef;">
+                <div style="font-weight: 600; color: #495057; margin-bottom: 5px;">Amount</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #28a745;">₹{{ donation.amount }}</div>
+            </div>
+            
+            <div>
+                <div style="font-weight: 600; color: #495057; margin-bottom: 5px;">Donor Information</div>
+                <div style="color: #212529;">{{ user_name }}</div>
+                <div style="color: #6c757d; font-size: 0.9rem;">{{ user_email }}</div>
+            </div>
+        </div>
+        
+        <button id="rzp-button1" class="payment-button">
+            <i class="fas fa-lock me-2"></i>
+            Pay ₹{{ donation.amount }} Now
+        </button>
+        
+        <div class="payment-info">
+            <p><i class="fas fa-shield-alt me-2"></i>Your payment is secured with 256-bit SSL encryption</p>
+            <p><i class="fas fa-clock me-2"></i>You will be redirected to Razorpay payment gateway</p>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+            <a href="{% url 'home' %}" style="color: #4361ee; text-decoration: none;">
+                <i class="fas fa-arrow-left me-2"></i>Return to Home
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+    <div>Processing payment...</div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+// Show loading overlay
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+// Hide loading overlay
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+// Razorpay configuration
+var options = {
+    "key": "{{ api_key }}",
+    "amount": "{{ amount }}",
+    "currency": "INR",
+    "name": "Take Care Foundation",
+    "description": "Donation Payment",
+    "image": "{% static 'img/logo.png' %}",
+    "order_id": "{{ order_id }}",
+    "handler": function (response) {
+        showLoading();
+        // Redirect to home with success parameters
+        window.location.href = "{% url 'home' %}?status=success&type=donation&payment_id=" + 
+                               response.razorpay_payment_id + 
+                               "&order_id=" + response.razorpay_order_id + 
+                               "&signature=" + response.razorpay_signature + 
+                               "&donation_id={{ donation.id }}";
+    },
+    "prefill": {
+        "name": "{{ user_name }}",
+        "email": "{{ user_email }}",
+        "contact": "{{ user_contact }}"
+    },
+    "notes": {
+        "donation_id": "{{ donation.id }}",
+        "organization": "{{ donation.organization.name }}"
+    },
+    "theme": {
+        "color": "#4361ee"
+    }
+};
+
+var rzp1 = new Razorpay(options);
+
+// Auto-open payment modal on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        showLoading();
+        rzp1.open();
+        setTimeout(hideLoading, 2000); // Hide loading after 2 seconds if payment modal doesn't open
+    }, 1000);
+});
+
+// Manual payment button click
+document.getElementById('rzp-button1').onclick = function(e) {
+    showLoading();
+    rzp1.open();
+    e.preventDefault();
+};
+
+// Handle payment modal close
+rzp1.on('close', function() {
+    hideLoading();
+});
+
+// Handle payment failure
+rzp1.on('payment.failed', function (response) {
+    hideLoading();
+    window.location.href = "{% url 'home' %}?status=failed&type=donation&code=" + 
+                          response.error.code + 
+                          "&description=" + encodeURIComponent(response.error.description);
+});
+</script>
+{% endblock content %}

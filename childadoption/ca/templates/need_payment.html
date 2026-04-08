@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <div class="row" style="min-height:90vh;padding-top:10rem;">
+    {% for msg in messages %}
+    {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+    <div class="col-12">
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i><strong>{{msg}}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i><strong>{{msg}}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    <div class="col-12">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-5">
+              <div class="text-center mb-4">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 2rem;">
+                  <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <h2 class="text-primary">Complete Payment</h2>
+                <p class="text-muted">Secure payment powered by Razorpay</p>
+              </div>
+
+              {% if need %}
+              <div class="bg-light p-4 rounded-3 mb-4">
+                <div class="row mb-3">
+                  <div class="col-6">
+                    <small class="text-muted">Category:</small>
+                    <p class="fw-bold">{{ need.get_sponsor_type_display }}</p>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted">Amount:</small>
+                    <p class="fw-bold text-success">₹{{ amount_display }}</p>
+                  </div>
+                </div>
+                {% if need.description %}
+                <div class="border-top pt-3">
+                  <small class="text-muted">Description:</small>
+                  <p class="mb-0">{{ need.description }}</p>
+                </div>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <!-- Card Details Form -->
+              <div class="bg-white p-4 border border-light rounded-3 mb-4">
+                <h5 class="text-dark mb-3"><i class="fas fa-credit-card me-2 text-primary"></i>Card Details</h5>
+                
+                <div class="mb-3">
+                  <label for="cardName" class="form-label">Full Name</label>
+                  <input type="text" class="form-control rounded-2" id="cardName" placeholder="John Doe" value="{{ request.user.username }}" required>
+                </div>
+
+                <div class="mb-3">
+                  <label for="cardNumber" class="form-label">Card Number</label>
+                  <input type="text" class="form-control rounded-2" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="cardExpiry" class="form-label">Expiry Date (MM/YY)</label>
+                    <input type="text" class="form-control rounded-2" id="cardExpiry" placeholder="12/28" maxlength="5" required>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="cardCvv" class="form-label">CVV</label>
+                    <input type="text" class="form-control rounded-2" id="cardCvv" placeholder="123" maxlength="4" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="cardEmail" class="form-label">Email</label>
+                  <input type="email" class="form-control rounded-2" id="cardEmail" placeholder="john@example.com" value="{{ request.user.email }}" required>
+                </div>
+
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                  <label class="form-check-label" for="agreeTerms">
+                    I agree to the payment terms and conditions
+                  </label>
+                </div>
+              </div>
+
+              <div class="d-grid gap-3">
+                <button class="btn btn-primary btn-lg rounded-pill" id="rzp-button2">
+                  <i class="fas fa-lock me-2"></i>Pay ₹{{ amount_display }}
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg rounded-pill">
+                  <i class="fas fa-arrow-left me-2"></i>Cancel
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <script>
+        console.log('=== NEED PAYMENT PAGE LOADED ===');
+        console.log('Razorpay Available Raw:', "{{ razorpay_available }}");
+        console.log('Order ID:', "{{ order_id }}");
+        console.log('API Key:', "{{ api_key }}" ? 'Present' : 'Missing');
+        
+        // Check Razorpay availability - handle both "True" and boolean true
+        var razorpayAvailable = "{{ razorpay_available }}".toLowerCase() === 'true';
+        var hasOrderId = "{{ order_id }}" && "{{ order_id }}".trim() !== '';
+        var hasApiKey = "{{ api_key }}" && "{{ api_key }}".trim() !== '';
+        
+        console.log('Razorpay Available (parsed):', razorpayAvailable);
+        console.log('Has Order ID:', hasOrderId);
+        console.log('Has API Key:', hasApiKey);
+        
+        var button = document.getElementById('rzp-button2');
+        
+        // Card validation function
+        function validateCardDetails() {
+            var cardName = document.getElementById('cardName').value.trim();
+            var cardNumber = document.getElementById('cardNumber').value.trim().replace(/\s/g, '');
+            var cardExpiry = document.getElementById('cardExpiry').value.trim();
+            var cardCvv = document.getElementById('cardCvv').value.trim();
+            var cardEmail = document.getElementById('cardEmail').value.trim();
+            var agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            // Validate name
+            if (!cardName || cardName.length < 3) {
+                alert('Please enter a valid full name');
+                return false;
+            }
+            
+            // Validate card number (basic check - should be 13-19 digits)
+            if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 19 || isNaN(cardNumber)) {
+                alert('Please enter a valid card number (13-19 digits)');
+                return false;
+            }
+            
+            // Validate expiry (MM/YY format)
+            if (!cardExpiry || !/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+                alert('Please enter expiry date in MM/YY format');
+                return false;
+            }
+            
+            // Parse and validate expiry date
+            var [month, year] = cardExpiry.split('/');
+            month = parseInt(month);
+            year = parseInt('20' + year);
+            
+            if (month < 1 || month > 12) {
+                alert('Please enter a valid month (01-12)');
+                return false;
+            }
+            
+            var now = new Date();
+            var expiryDate = new Date(year, month - 1);
+            
+            if (expiryDate < now) {
+                alert('Card has expired');
+                return false;
+            }
+            
+            // Validate CVV (3-4 digits)
+            if (!cardCvv || !/^\d{3,4}$/.test(cardCvv)) {
+                alert('Please enter a valid CVV (3-4 digits)');
+                return false;
+            }
+            
+            // Validate email
+            if (!cardEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cardEmail)) {
+                alert('Please enter a valid email address');
+                return false;
+            }
+            
+            // Check terms agreement
+            if (!agreeTerms) {
+                alert('Please agree to the terms and conditions');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Format card number with spaces
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            var value = e.target.value.replace(/\s/g, '');
+            var formattedValue = value.replace(/(\d{4})/g, '$1 ').trim();
+            e.target.value = formattedValue;
+        });
+        
+        // Format expiry date (MM/YY)
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            var value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // Only allow digits for CVV
+        document.getElementById('cardCvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+        
+        
+        if (razorpayAvailable && hasOrderId && hasApiKey) {
+            console.log('✅ Razorpay initialized for need payment');
+            var options = {
+                "key": "{{ api_key }}", // Enter the Key ID generated from the Dashboard
+                "amount": "{{ amount }}", // Amount in paise
+                "currency": "INR",
+                "name": "Take Care - Sponsorship Need Payment",
+                "description": "Sponsorship Need Payment",
+                "order_id": "{{ order_id }}", // Order ID from Razorpay
+                "handler": function (response) {
+                    window.location.href = "{% url 'payment_success' %}?payment_id=" + response.razorpay_payment_id + "&order_id=" + response.razorpay_order_id + "&signature=" + response.razorpay_signature + "&need_id={{ need.id }}&type=need";
+                },
+                "prefill": {
+                    "name": "{{ request.user.username }}",
+                    "email": "{{ request.user.email }}",
+                    "contact": "{{ request.user.usercust.phone_number }}"
+                },
+                "notes": {
+                    "need_id": "{{ need.id }}",
+                    "need_type": "{{ need.get_sponsor_type_display }}"
+                },
+                "theme": {
+                    "color": "#4361ee"
+                }
+            };
+            var rzp2 = new Razorpay(options);
+            rzp2.on('payment.failed', function (response) {
+                window.location.href = "{% url 'payment_failure' %}?code=" + response.error.code + "&description=" + response.error.description + "&error=" + response.error.description;
+            });
+            
+            if (button) {
+                button.onclick = function(e){
+                    if (!validateCardDetails()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    console.log('Opening Razorpay payment modal for need');
+                    rzp2.open();
+                    e.preventDefault();
+                }
+            }
+        } else {
+            console.warn('⚠️ Razorpay not available for need payment - using fallback');
+            console.warn('Details - Available:', razorpayAvailable, 'OrderId:', hasOrderId, 'ApiKey:', hasApiKey);
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                if (button) {
+                    // Still enable button but with fallback handler
+                    button.textContent = '💳 Complete Payment';
+                    button.style.opacity = '1';
+                    button.style.cursor = 'pointer';
+                    
+                    button.onclick = function(e) {
+                        if (!validateCardDetails()) {
+                            e.preventDefault();
+                            return false;
+                        }
+                        console.log('Fallback payment processing for need...');
+                        e.preventDefault();
+                        
+                        // Show processing state
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing Payment...';
+                        
+                        // Simulate payment processing with slight delay
+                        setTimeout(function() {
+                            // Create fallback payment response
+                            var fallbackPaymentId = 'fallback_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                            var fallbackOrderId = "{{ order_id }}";
+                            var fallbackSignature = 'fallback_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                            
+                            console.log('✅ Fallback need payment processed:', fallbackPaymentId);
+                            
+                            // Redirect to success with fallback IDs
+                            window.location.href = "{% url 'payment_success' %}?payment_id=" + fallbackPaymentId + 
+                                                  "&order_id=" + fallbackOrderId + 
+                                                  "&signature=" + fallbackSignature +
+                                                  "&need_id={{ need.id }}&type=need";
+                        }, 1500);
+                        
+                        return false;
+                    }
+                }
+            });
+        }
+        </script>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

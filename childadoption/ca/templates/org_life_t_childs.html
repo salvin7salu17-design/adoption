@@ -1,0 +1,697 @@
+{% extends 'organization_panel.html' %}
+{% load static %}
+{% block home %}
+<style>
+    /* Enhanced Custom Styles */
+    :root {
+        --primary-color: #4361ee;
+        --primary-light: #eef2ff;
+        --secondary-color: #3a0ca3;
+        --accent-color: #4cc9f0;
+        --success-color: #38b000;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --border-radius: 20px;
+    }
+    
+    .container {
+        padding: 30px;
+        max-width: 1400px;
+    }
+    
+    /* Remove modal backdrop completely */
+    .modal-backdrop {
+        display: none !important;
+    }
+    
+    /* Modal without backdrop */
+    .modal {
+        background-color: transparent !important;
+        pointer-events: none; /* Allow clicks to pass through modal background */
+    }
+    
+    .modal-dialog {
+        pointer-events: auto; /* Restore pointer events for modal content */
+    }
+    
+    /* Modal without dark background */
+    .modal.fade .modal-dialog {
+        transform: translate(0, -25px);
+    }
+    
+    .modal.show .modal-dialog {
+        transform: translate(0, 0);
+    }
+    
+    /* Alerts Styling */
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 18px 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .alert::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 5px;
+        background: currentColor;
+        opacity: 0.8;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #ffeaea 0%, #ffd8d8 100%);
+        color: #d32f2f;
+        border-left: 5px solid #d32f2f;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #e8f5e9 0%, #d0f0d0 100%);
+        color: #2e7d32;
+        border-left: 5px solid #2e7d32;
+    }
+    
+    .alert-dismissible .btn-close {
+        padding: 1.2rem;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    /* Blog Item Cards */
+    .blog-item {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        transition: var(--transition);
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .blog-item:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .blog-img {
+        height: 200px;
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        position: relative;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    
+    .blog-img::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .blog-info {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+    }
+    
+    .blog-info i {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 4rem;
+        margin-bottom: 15px;
+    }
+    
+    /* Content Styling */
+    .text-dark {
+        padding: 30px !important;
+    }
+    
+    .blog-item h4 {
+        color: var(--dark-color);
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--primary-light);
+        position: relative;
+    }
+    
+    .blog-item h4::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: var(--primary-color);
+    }
+    
+    .blog-item p {
+        color: #5a6c7d;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 15px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: var(--transition);
+    }
+    
+    .blog-item p:hover {
+        background: #f9f9ff;
+        padding-left: 10px;
+        border-radius: 8px;
+    }
+    
+    .blog-item p:last-of-type {
+        border-bottom: none;
+    }
+    
+    .fw-bold {
+        color: var(--primary-color);
+        font-weight: 700;
+        min-width: 100px;
+        display: inline-block;
+    }
+    
+    /* Button Styling */
+    .btn-hover-bg, .btn-success {
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: var(--transition);
+        border: none;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .btn-hover-bg::before, .btn-success::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transition: left 0.5s ease;
+        z-index: -1;
+    }
+    
+    .btn-hover-bg:hover::before, .btn-success:hover::before {
+        left: 100%;
+    }
+    
+    .btn-hover-bg {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+    }
+    
+    .btn-hover-bg:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+        color: white;
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-color) 0%, #2b9348 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(56, 176, 0, 0.3);
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(56, 176, 0, 0.4);
+        color: white;
+    }
+    
+    /* Modal Styling - Enhanced without backdrop */
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        position: relative;
+        z-index: 9999;
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 25px 30px;
+        border-bottom: none;
+    }
+    
+    .modal-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    
+    .modal-body {
+        padding: 30px;
+        background: white;
+    }
+    
+    .modal-footer {
+        padding: 20px 30px;
+        border-top: 1px solid #f0f0f0;
+        background: #f9f9ff;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        transition: var(--transition);
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        color: white;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        color: white;
+        transition: var(--transition);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        color: white;
+    }
+    
+    /* Form Styling */
+    form p {
+        margin-bottom: 20px;
+    }
+    
+    form label {
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    form input, form select, form textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        transition: var(--transition);
+        font-size: 1rem;
+    }
+    
+    form input:focus, form select:focus, form textarea:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        outline: none;
+    }
+    
+    /* Grid Layout */
+    .row.g-4 {
+        margin-top: 20px;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    /* Animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        50% { transform: translateY(-15px) translateX(15px); }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .blog-item {
+        animation: fadeInUp 0.6s ease-out forwards;
+        animation-delay: calc(var(--index) * 0.1s);
+        opacity: 0;
+    }
+    
+    /* Modal entrance animation */
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .modal.show .modal-dialog {
+        animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .col-lg-6.col-xl-3 {
+            flex: 0 0 33.333%;
+            max-width: 33.333%;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .col-lg-6.col-xl-3 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .col-lg-6.col-xl-3 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        
+        .blog-img {
+            height: 180px;
+        }
+        
+        .blog-item h4 {
+            font-size: 1.3rem;
+        }
+        
+        /* Center modals on mobile */
+        .modal-dialog {
+            margin: 20px auto;
+        }
+    }
+    
+    /* Header Styling */
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, #eef2ff 100%);
+        border-radius: var(--border-radius);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header h1 {
+        font-weight: 800;
+        color: var(--dark-color);
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .page-header p {
+        color: #6c757d;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%234361ee' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.3;
+        z-index: 1;
+    }
+</style>
+
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>Lifetime Sponsorships</h1>
+        <p>View and manage all lifetime sponsorship commitments in your organization</p>
+    </div>
+    
+    <!-- Messages/Alerts -->
+    {% for msg in messages %}
+    {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <div class="flex-grow-1">{{ msg }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <div class="flex-grow-1">{{ msg }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    
+    <!-- Sponsorship Cards -->
+    {% if lifetime_sponserships %}
+    <div class="row g-4">
+        {% for ch in lifetime_sponserships %}
+        <div class="col-lg-6 col-xl-3">
+            <div class="blog-item" style="--index: {{ forloop.counter0 }}">
+                <div class="blog-img">
+                    <div class="blog-info">
+                        <i class="fas fa-handshake"></i>
+                        <h4 style="color: white;">Sponsorship ID: #{{ ch.id }}</h4>
+                    </div>
+                </div>
+                <div class="text-dark border p-4">
+                    <h4 class="mb-4">
+                        <span class="fw-bold">Sponsor:</span> 
+                        {{ ch.sponser.fname }} {{ ch.sponser.lname }}
+                    </h4>
+                    <p class="mb-4">
+                        <span class="fw-bold">Phone:</span> 
+                        {{ ch.sponser.phone_number }}
+                    </p>
+                    <p class="mb-4">
+                        <span class="fw-bold">From Date:</span> 
+                        {{ ch.date_from }}
+                    </p>
+                    <p class="mb-4">
+                        <span class="fw-bold">To Date:</span> 
+                        {{ ch.date_to }}
+                    </p>
+                    
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal{{ ch.id }}">
+                        <i class="fas fa-credit-card me-2"></i>Request Payment
+                    </button>
+                    
+                    <!-- Modal - WITHOUT BACKDROP -->
+                    <div class="modal fade" id="exampleModal{{ ch.id }}" tabindex="-1" aria-labelledby="exampleModalLabel{{ ch.id }}" aria-hidden="true" data-bs-backdrop="false">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel{{ ch.id }}">
+                                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                                        Payment Request - {{ ch.sponser.fname }} {{ ch.sponser.lname }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-4">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Submit payment request for sponsor: <strong>{{ ch.sponser.fname }} {{ ch.sponser.lname }}</strong>
+                                        </div>
+                                    </div>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        {{ form.as_p }}
+                                        <div class="d-flex justify-content-between mt-4">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-2"></i>Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-paper-plane me-2"></i>Submit Request
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-hand-holding-heart"></i>
+        <h3 class="mb-3">No Lifetime Sponsorships Found</h3>
+        <p class="text-muted">There are currently no lifetime sponsorships available.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to cards
+    const cards = document.querySelectorAll('.blog-item');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+    
+    // Add hover effect to paragraphs
+    const paragraphs = document.querySelectorAll('.blog-item p');
+    paragraphs.forEach(p => {
+        p.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        p.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // Enhance modal forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+            // Add Bootstrap form-control class to all inputs
+            if (input.type !== 'checkbox' && input.type !== 'radio') {
+                input.classList.add('form-control');
+            }
+        });
+        
+        // Add labels to form fields if they don't have them
+        const formParagraphs = form.querySelectorAll('p');
+        formParagraphs.forEach(p => {
+            const label = p.querySelector('label');
+            const input = p.querySelector('input, select, textarea');
+            
+            if (input && !label) {
+                const inputId = input.getAttribute('id');
+                if (inputId) {
+                    const newLabel = document.createElement('label');
+                    newLabel.setAttribute('for', inputId);
+                    newLabel.className = 'form-label fw-bold mb-2';
+                    newLabel.textContent = inputId.replace('_', ' ').replace('id_', '').replace(/\b\w/g, l => l.toUpperCase());
+                    p.insertBefore(newLabel, input);
+                }
+            }
+            
+            // Add margin to p elements
+            p.classList.add('mb-3');
+        });
+    });
+    
+    // Close modal when clicking outside (but not on the backdrop since it's removed)
+    document.addEventListener('click', function(event) {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => {
+            const modalDialog = modal.querySelector('.modal-dialog');
+            if (modalDialog && !modalDialog.contains(event.target) && !event.target.closest('[data-bs-toggle="modal"]')) {
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+        });
+    });
+    
+    // Add escape key to close modals
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const activeModal = document.querySelector('.modal.show');
+            if (activeModal) {
+                const modalInstance = bootstrap.Modal.getInstance(activeModal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+        }
+    });
+    
+    // Initialize Bootstrap modals without backdrop
+    const modalElements = document.querySelectorAll('.modal');
+    modalElements.forEach(modalEl => {
+        // Remove any existing backdrop
+        const existingBackdrop = document.querySelector('.modal-backdrop');
+        if (existingBackdrop) {
+            existingBackdrop.remove();
+        }
+        
+        // Initialize modal with no backdrop
+        const modal = new bootstrap.Modal(modalEl, {
+            backdrop: false,
+            keyboard: true
+        });
+        
+        // Store reference for later use
+        modalEl.bootstrapModal = modal;
+    });
+});
+</script>
+
+<!-- Add Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}

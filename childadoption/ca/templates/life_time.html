@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sety %}
+<div class="container">
+  <div class="row" style="min-height:90vh;padding-top:8rem;">
+    {% for msg in messages %}
+    {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>{{msg}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% else %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>{{msg}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    {% endfor %}
+    
+    <div class="col-12 col-lg-10 mx-auto">
+      <div class="card shadow-lg border-0 rounded-4 mb-5">
+        <div class="card-header bg-gradient-primary text-white py-4 rounded-top-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="h3 mb-0"><i class="fas fa-heart me-3"></i>Lifetime Sponsorship Form</h1>
+              <p class="mb-0 opacity-90 mt-2">Make a lasting impact on a child's life</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <span class="badge bg-light text-primary fs-6 px-3 py-2 rounded-pill">
+                <i class="fas fa-exclamation-circle me-2"></i>Important Notice
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body p-4 p-lg-5">
+          <!-- Warning Alert Box -->
+          <div class="alert alert-warning border-warning border-3 rounded-3 mb-5 shadow-sm" role="alert">
+            <div class="d-flex align-items-start">
+              <i class="fas fa-exclamation-triangle fs-4 me-3 mt-1 text-warning"></i>
+              <div>
+                <h5 class="alert-heading mb-2">Disclosure Notice</h5>
+                <p class="mb-2 fw-medium text-dark">
+                  If you are sponsoring a child, you cannot sponsor that same child again in the future.
+                  Each sponsorship is a one-time lifetime commitment.
+                </p>
+                <div class="mt-3">
+                  <i class="fas fa-info-circle me-2 text-primary"></i>
+                  <small class="text-muted">Please review all details carefully before submitting</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Container -->
+          <div class="row justify-content-center">
+            <div class="col-12">
+              <div class="form-card p-4 border rounded-4 shadow-sm bg-light">
+                <form method="post" class="needs-validation" novalidate>
+                  {% csrf_token %}
+                  
+                  <!-- Date Range Section -->
+                  <div class="row mb-5">
+                    <div class="col-md-6 mb-4">
+                      <div class="form-group">
+                        <label for="{{ form.date_from.id_for_label }}" class="form-label fw-bold text-primary">
+                          <i class="fas fa-calendar-plus me-2"></i>Sponsorship Start Date
+                        </label>
+                        {{ form.date_from }}
+                        {% if form.date_from.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.date_from.errors }}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted mt-2">
+                          <i class="fas fa-lightbulb me-1"></i>Choose the date your sponsorship will begin
+                        </small>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                      <div class="form-group">
+                        <label for="{{ form.date_to.id_for_label }}" class="form-label fw-bold text-primary">
+                          <i class="fas fa-calendar-check me-2"></i>Sponsorship End Date
+                        </label>
+                        {{ form.date_to }}
+                        {% if form.date_to.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.date_to.errors }}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted mt-2">
+                          <i class="fas fa-lightbulb me-1"></i>Choose the date your sponsorship will conclude
+                        </small>
+                      </div>
+                    </div>
+                    
+                    <!-- Duration Indicator -->
+                    <div class="col-12">
+                      <div class="duration-indicator bg-white p-3 rounded-3 border shadow-sm">
+                        <div class="row align-items-center">
+                          <div class="col-md-8">
+                            <h6 class="mb-0 fw-bold text-primary">
+                              <i class="fas fa-clock me-2"></i>Sponsorship Duration
+                            </h6>
+                            <p class="mb-0 text-muted" id="duration-display">Select dates to see duration</p>
+                          </div>
+                          <div class="col-md-4 text-md-end">
+                            <span class="badge bg-gradient-primary rounded-pill px-3 py-2 fs-6" id="duration-badge">
+                              --
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Form Submit Section -->
+                  <div class="row">
+                    <div class="col-12">
+                      <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
+                        <!-- FIXED: Changed 'child_list' to a valid URL pattern -->
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
+                          <i class="fas fa-arrow-left me-2"></i>Back to Home
+                        </a>
+                        <!-- OR if you have a specific child list page: -->
+                        <!-- 
+                        <a href="{% url 'usr_ch_li' pk=request.user.pk %}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
+                          <i class="fas fa-arrow-left me-2"></i>Back to Children
+                        </a>
+                        -->
+                        <button type="submit" class="btn btn-success btn-lg px-5 rounded-pill shadow">
+                          <i class="fas fa-paper-plane me-2"></i>Submit Sponsorship
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+              <div class="info-card h-100 p-4 rounded-4 border bg-white shadow-sm">
+                <div class="text-center mb-3">
+                  <i class="fas fa-handshake fa-2x text-primary mb-3"></i>
+                  <h5 class="fw-bold">Commitment</h5>
+                </div>
+                <p class="text-muted text-center">
+                  Lifetime sponsorship is a long-term commitment to a child's future.
+                </p>
+              </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+              <div class="info-card h-100 p-4 rounded-4 border bg-white shadow-sm">
+                <div class="text-center mb-3">
+                  <i class="fas fa-shield-alt fa-2x text-success mb-3"></i>
+                  <h5 class="fw-bold">Security</h5>
+                </div>
+                <p class="text-muted text-center">
+                  Your sponsorship provides stability and security for the child's education and care.
+                </p>
+              </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+              <div class="info-card h-100 p-4 rounded-4 border bg-white shadow-sm">
+                <div class="text-center mb-3">
+                  <i class="fas fa-heartbeat fa-2x text-danger mb-3"></i>
+                  <h5 class="fw-bold">Impact</h5>
+                </div>
+                <p class="text-muted text-center">
+                  Transform a child's life through education, healthcare, and emotional support.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-footer bg-light py-4 rounded-bottom-4 border-top">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <p class="mb-0 text-muted">
+                <i class="fas fa-question-circle me-2 text-primary"></i>
+                Need assistance? Contact our support team at <strong>support@orphancare.org</strong>
+              </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+              <small class="text-muted">
+                <i class="fas fa-lock me-1"></i>Secure & Confidential
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+  }
+  
+  .form-control {
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    transform: translateY(-1px);
+  }
+  
+  .btn-success {
+    background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+  }
+  
+  .btn-outline-secondary:hover {
+    transform: translateY(-2px);
+  }
+  
+  .duration-indicator {
+    transition: all 0.3s ease;
+  }
+  
+  .info-card {
+    transition: transform 0.3s ease;
+  }
+  
+  .info-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .form-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  }
+  
+  .alert-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 5px solid #ffc107;
+  }
+  
+  /* Date input custom styling */
+  input[type="date"] {
+    cursor: pointer;
+  }
+  
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    background-color: #0d6efd;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  // Duration Calculator
+  document.addEventListener('DOMContentLoaded', function() {
+    const dateFromInput = document.querySelector('#{{ form.date_from.id_for_label }}');
+    const dateToInput = document.querySelector('#{{ form.date_to.id_for_label }}');
+    const durationDisplay = document.getElementById('duration-display');
+    const durationBadge = document.getElementById('duration-badge');
+    
+    function calculateDuration() {
+      const dateFrom = new Date(dateFromInput.value);
+      const dateTo = new Date(dateToInput.value);
+      
+      if (dateFrom && dateTo && dateFrom <= dateTo) {
+        const diffTime = Math.abs(dateTo - dateFrom);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const years = Math.floor(diffDays / 365);
+        const months = Math.floor((diffDays % 365) / 30);
+        const days = diffDays % 30;
+        
+        let durationText = '';
+        if (years > 0) {
+          durationText += `${years} year${years > 1 ? 's' : ''} `;
+        }
+        if (months > 0) {
+          durationText += `${months} month${months > 1 ? 's' : ''} `;
+        }
+        if (days > 0 || (years === 0 && months === 0)) {
+          durationText += `${days} day${days !== 1 ? 's' : ''}`;
+        }
+        
+        durationDisplay.textContent = `Your sponsorship will last for ${durationText}`;
+        durationBadge.textContent = `${diffDays} days`;
+        
+        // Color code based on duration
+        if (diffDays < 365) {
+          durationBadge.className = 'badge bg-warning rounded-pill px-3 py-2 fs-6';
+        } else if (diffDays < 1825) { // 5 years
+          durationBadge.className = 'badge bg-primary rounded-pill px-3 py-2 fs-6';
+        } else {
+          durationBadge.className = 'badge bg-success rounded-pill px-3 py-2 fs-6';
+        }
+      } else {
+        durationDisplay.textContent = 'Select valid dates to see duration';
+        durationBadge.textContent = '--';
+        durationBadge.className = 'badge bg-secondary rounded-pill px-3 py-2 fs-6';
+      }
+    }
+    
+    dateFromInput.addEventListener('change', calculateDuration);
+    dateToInput.addEventListener('change', calculateDuration);
+    
+    // Initialize if dates are pre-filled
+    if (dateFromInput.value || dateToInput.value) {
+      calculateDuration();
+    }
+    
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  });
+</script>
+{% endblock sety %}

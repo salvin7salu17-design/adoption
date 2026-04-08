@@ -1,0 +1,591 @@
+{% extends 'base.html' %}
+{%load static%}
+
+{% block service %}
+<!-- Services Section -->
+<div class="container-fluid services-section py-6 bg-light" style="min-height: 51rem;">
+  <div class="container py-6">
+    
+    <!-- Messages Display -->
+    {% for msg in messages %}
+    <div class="alert alert-dismissible fade show mb-5 shadow-sm {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-success{% endif %}" role="alert">
+      <div class="d-flex align-items-center">
+        <i class="fas {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-3 fs-5"></i>
+        <div class="flex-grow-1">
+          <strong>{{msg}}</strong>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Header Section -->
+    <div class="text-center mx-auto mb-6" style="max-width: 800px;">
+      <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold px-3 py-2 mb-3">
+        <i class="fas fa-handshake me-2"></i>Our Services
+      </span>
+      <h1 class="display-5 fw-bold mb-3">How You Can Make a Difference</h1>
+      <p class="lead text-muted mb-0">Choose from our three primary ways to support children in need. Every contribution creates a lasting impact.</p>
+    </div>
+    
+    <!-- Services Cards -->
+    <div class="row g-4 justify-content-center">
+      <!-- Donation Card -->
+      <div class="col-lg-4 col-md-6">
+        <div class="service-card h-100 rounded-4 overflow-hidden border-0 shadow-lg hover-lift">
+          <div class="position-relative overflow-hidden" style="height: 250px;">
+            <img src="{% static 'images1/donations.jpg'%}" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Donation">
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient-overlay"></div>
+            <div class="position-absolute top-0 end-0 m-4">
+              <span class="badge bg-success bg-opacity-90 text-white px-3 py-2 rounded-pill">
+                <i class="fas fa-donate me-1"></i>Instant Impact
+              </span>
+            </div>
+            <div class="position-absolute bottom-0 start-0 w-100 p-4 text-white">
+              <h3 class="fw-bold mb-2 text-shadow">DONATE</h3>
+              <p class="mb-0 opacity-90">Direct financial support for immediate needs</p>
+            </div>
+          </div>
+          
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="flex-grow-1">
+              <p class="text-muted mb-4 fs-5">
+                <i class="fas fa-quote-left text-primary me-2"></i>
+                "I must be willing to give whatever it takes to do good to others. This requires that I be willing to give until it hurts."
+                <i class="fas fa-quote-right text-primary ms-2"></i>
+              </p>
+              
+              <!-- Donation Stats -->
+              <div class="d-flex flex-wrap gap-3 mb-4">
+                <div class="d-flex align-items-center">
+                  <div class="icon-circle bg-primary bg-opacity-10 text-primary me-2">
+                    <i class="fas fa-heart"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold">Immediate Help</h6>
+                    <small class="text-muted">Funds reach instantly</small>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="icon-circle bg-success bg-opacity-10 text-success me-2">
+                    <i class="fas fa-receipt"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold">Tax Benefits</h6>
+                    <small class="text-muted">Get tax receipts</small>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Impact Areas -->
+              <div class="mb-4">
+                <h6 class="fw-bold mb-3">Supports:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                    <i class="fas fa-utensils me-1"></i>Food
+                  </span>
+                  <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                    <i class="fas fa-graduation-cap me-1"></i>Education
+                  </span>
+                  <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">
+                    <i class="fas fa-stethoscope me-1"></i>Healthcare
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-auto">
+              <div class="text-center">
+                <a href="{% url 'donate' org_id %}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 w-100 shadow-sm">
+                  <i class="fas fa-donate me-2"></i>Donate Now
+                </a>
+                <p class="text-muted small mt-2 mb-0">
+                  <i class="fas fa-lock me-1"></i>Secure Payment Gateway
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Adoption Card -->
+      <div class="col-lg-4 col-md-6">
+        <div class="service-card h-100 rounded-4 overflow-hidden border-0 shadow-lg hover-lift">
+          <div class="position-relative overflow-hidden" style="height: 250px;">
+            <img src="{% static 'images1/adoption.jpg' %}" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Adoption">
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient-overlay"></div>
+            <div class="position-absolute top-0 end-0 m-4">
+              <span class="badge bg-warning bg-opacity-90 text-white px-3 py-2 rounded-pill">
+                <i class="fas fa-home me-1"></i>Lifetime Impact
+              </span>
+            </div>
+            <div class="position-absolute bottom-0 start-0 w-100 p-4 text-white">
+              <h3 class="fw-bold mb-2 text-shadow">ADOPTION</h3>
+              <p class="mb-0 opacity-90">Provide a permanent loving home</p>
+            </div>
+          </div>
+          
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="flex-grow-1">
+              <p class="text-muted mb-4 fs-5">
+                <i class="fas fa-quote-left text-warning me-2"></i>
+                "We believe that adoption is a faith journey — one that you are called to by the Lord. We believe that whatever God calls you to, He will equip you for."
+                <i class="fas fa-quote-right text-warning ms-2"></i>
+              </p>
+              
+              <!-- Adoption Stats -->
+              <div class="d-flex flex-wrap gap-3 mb-4">
+                <div class="d-flex align-items-center">
+                  <div class="icon-circle bg-warning bg-opacity-10 text-warning me-2">
+                    <i class="fas fa-users"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold">Complete Support</h6>
+                    <small class="text-muted">Guidance throughout</small>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="icon-circle bg-info bg-opacity-10 text-info me-2">
+                    <i class="fas fa-hand-holding-heart"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold">Aftercare</h6>
+                    <small class="text-muted">Post-adoption support</small>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Process Steps -->
+              <div class="mb-4">
+                <h6 class="fw-bold mb-3">Process Steps:</h6>
+                <div class="process-steps">
+                  <div class="step">
+                    <div class="step-number bg-warning text-white">1</div>
+                    <span class="step-text">Application</span>
+                  </div>
+                  <div class="step">
+                    <div class="step-number bg-warning text-white">2</div>
+                    <span class="step-text">Home Study</span>
+                  </div>
+                  <div class="step">
+                    <div class="step-number bg-warning text-white">3</div>
+                    <span class="step-text">Placement</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-auto">
+              <div class="text-center">
+                <a href="{% url 'adoptionform' org_id %}" class="btn btn-warning btn-lg rounded-pill px-5 py-3 w-100 shadow-sm">
+                  <i class="fas fa-users me-2"></i>Start Adoption
+                </a>
+                <p class="text-muted small mt-2 mb-0">
+                  <i class="fas fa-question-circle me-1"></i>Guided process with support
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sponsorship Card -->
+      <div class="col-lg-4 col-md-6">
+        <div class="service-card h-100 rounded-4 overflow-hidden border-0 shadow-lg hover-lift">
+          <div class="position-relative overflow-hidden" style="height: 250px;">
+            <img src="{% static 'images1/Compassion-International.jpg' %}" class="img-fluid w-100 h-100 object-fit-cover transition-transform" alt="Sponsorship">
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient-overlay"></div>
+            <div class="position-absolute top-0 end-0 m-4">
+              <span class="badge bg-info bg-opacity-90 text-white px-3 py-2 rounded-pill">
+                <i class="fas fa-child me-1"></i>Personal Impact
+              </span>
+            </div>
+            <div class="position-absolute bottom-0 start-0 w-100 p-4 text-white">
+              <h3 class="fw-bold mb-2 text-shadow">SPONSORSHIP</h3>
+              <p class="mb-0 opacity-90">Support a child's development</p>
+            </div>
+          </div>
+          
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="flex-grow-1">
+              <p class="text-muted mb-4 fs-5">
+                <i class="fas fa-quote-left text-info me-2"></i>
+                "For years I procrastinated about what charity to support and if it would make a difference. Sponsoring a child allows you to make a difference and what you get back cannot be measured by what you donate."
+                <i class="fas fa-quote-right text-info ms-2"></i>
+              </p>
+              
+              <!-- Sponsorship Stats -->
+              <div class="d-flex flex-wrap gap-3 mb-4">
+                <div class="d-flex align-items-center">
+                  <div class="icon-circle bg-info bg-opacity-10 text-info me-2">
+                    <i class="fas fa-user-graduate"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold">Education</h6>
+                    <small class="text-muted">School fees & supplies</small>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="icon-circle bg-success bg-opacity-10 text-success me-2">
+                    <i class="fas fa-tshirt"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 fw-bold">Basic Needs</h6>
+                    <small class="text-muted">Food & clothing</small>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Benefits - FIXED: Now visible with proper spacing -->
+              <div class="mb-4">
+                <h6 class="fw-bold mb-3 text-dark">You Receive:</h6>
+                <div class="benefits-container">
+                  <div class="benefit-item">
+                    <div class="benefit-icon bg-info text-white">
+                      <i class="fas fa-envelope"></i>
+                    </div>
+                    <span class="benefit-text">Regular Updates</span>
+                  </div>
+                  <div class="benefit-item">
+                    <div class="benefit-icon bg-success text-white">
+                      <i class="fas fa-images"></i>
+                    </div>
+                    <span class="benefit-text">Progress Photos</span>
+                  </div>
+                  <div class="benefit-item">
+                    <div class="benefit-icon bg-primary text-white">
+                      <i class="fas fa-certificate"></i>
+                    </div>
+                    <span class="benefit-text">Sponsor Certificate</span>
+                  </div>
+                  <div class="benefit-item">
+                    <div class="benefit-icon bg-warning text-white">
+                      <i class="fas fa-gift"></i>
+                    </div>
+                    <span class="benefit-text">Annual Reports</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-auto">
+              <div class="text-center">
+                <a href="{% url 'sponsor_child' org_id %}" class="btn btn-info btn-lg rounded-pill px-5 py-3 w-100 shadow-sm">
+                  <i class="fas fa-hand-holding-heart me-2"></i>Sponsor a Child
+                </a>
+                <p class="text-muted small mt-2 mb-0">
+                  <i class="fas fa-star me-1"></i>Build a personal connection
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Comparison Table -->
+    <div class="row mt-6">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+          <div class="card-header bg-primary text-white py-4">
+            <h4 class="mb-0 fw-bold text-center">
+              <i class="fas fa-balance-scale me-2"></i>Service Comparison
+            </h4>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                  <tr>
+                    <th scope="col" class="py-3 ps-4">Feature</th>
+                    <th scope="col" class="py-3 text-center">Donation</th>
+                    <th scope="col" class="py-3 text-center">Adoption</th>
+                    <th scope="col" class="py-3 text-center">Sponsorship</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row" class="ps-4 py-3">Commitment</th>
+                    <td class="text-center"><span class="badge bg-success">One-time/Flexible</span></td>
+                    <td class="text-center"><span class="badge bg-warning">Permanent</span></td>
+                    <td class="text-center"><span class="badge bg-info">Ongoing</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="ps-4 py-3">Impact</th>
+                    <td class="text-center"><i class="fas fa-check text-success"></i> Immediate</td>
+                    <td class="text-center"><i class="fas fa-check text-success"></i> Lifetime</td>
+                    <td class="text-center"><i class="fas fa-check text-success"></i> Long-term</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="ps-4 py-3">Personal Connection</th>
+                    <td class="text-center"><i class="fas fa-times text-muted"></i></td>
+                    <td class="text-center"><i class="fas fa-check text-success"></i> Family Bond</td>
+                    <td class="text-center"><i class="fas fa-check text-success"></i> Direct</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="ps-4 py-3">Support Provided</th>
+                    <td class="text-center">Full Support</td>
+                    <td class="text-center">Complete Guidance</td>
+                    <td class="text-center">Regular Updates</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom Styles */
+  .bg-gradient-overlay {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+  }
+  
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+  }
+  
+  .transition-transform {
+    transition: transform 0.5s ease;
+  }
+  
+  .hover-lift:hover .transition-transform {
+    transform: scale(1.05);
+  }
+  
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+  
+  .icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .process-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+  
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 1;
+  }
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 8px;
+    z-index: 2;
+    position: relative;
+  }
+  
+  .step-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-align: center;
+  }
+  
+  .service-card {
+    border: 1px solid rgba(0,0,0,0.1);
+    height: 100%;
+  }
+  
+  /* FIXED: Benefits Section */
+  .benefits-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .benefit-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .benefit-text {
+    font-size: 0.9rem;
+    color: #495057;
+    font-weight: 500;
+  }
+  
+  .py-6 {
+    padding-top: 5rem !important;
+    padding-bottom: 5rem !important;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+  
+  /* Ensure all cards are equal height */
+  .service-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 250px); /* Subtract image height */
+  }
+  
+  .service-card .card-body > .flex-grow-1 {
+    flex-grow: 1;
+  }
+  
+  .service-card .card-body > .mt-auto {
+    margin-top: auto;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .process-steps {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .step:not(:last-child)::after {
+      display: none;
+    }
+    
+    .step {
+      flex-direction: row;
+      width: 100%;
+      justify-content: flex-start;
+      gap: 15px;
+    }
+    
+    .step-number {
+      margin-bottom: 0;
+    }
+    
+    .step-text {
+      text-align: left;
+    }
+    
+    .py-6 {
+      padding-top: 3rem !important;
+      padding-bottom: 3rem !important;
+    }
+    
+    .benefits-container {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to service cards
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      
+      setTimeout(() => {
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 200);
+    });
+    
+    // Make all cards equal height
+    function setEqualCardHeights() {
+      const cards = document.querySelectorAll('.service-card');
+      let maxHeight = 0;
+      
+      // Reset heights first
+      cards.forEach(card => {
+        card.style.height = 'auto';
+      });
+      
+      // Find the maximum height
+      cards.forEach(card => {
+        const cardHeight = card.offsetHeight;
+        if (cardHeight > maxHeight) {
+          maxHeight = cardHeight;
+        }
+      });
+      
+      // Set all cards to the maximum height
+      cards.forEach(card => {
+        card.style.height = maxHeight + 'px';
+      });
+    }
+    
+    // Call initially and on window resize
+    setEqualCardHeights();
+    window.addEventListener('resize', setEqualCardHeights);
+    
+    // Table row hover effect
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+      row.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = 'rgba(13, 110, 253, 0.05)';
+      });
+      
+      row.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = '';
+      });
+    });
+    
+    // Button hover effects
+    const buttons = document.querySelectorAll('.btn-lg');
+    buttons.forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.02)';
+      });
+      
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+      });
+      
+      button.addEventListener('click', function() {
+        this.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+          this.style.transform = 'scale(1)';
+        }, 150);
+      });
+    });
+  });
+</script>
+{% endblock service %}

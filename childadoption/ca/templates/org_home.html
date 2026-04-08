@@ -1,0 +1,310 @@
+{% extends 'organization_panel.html' %}
+{%load static%}
+{%block home%}
+<style>
+    /* Custom Styles for Organization Dashboard */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+        background-size: cover;
+        opacity: 0.3;
+    }
+    
+    .org-profile-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .org-profile-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .org-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .org-detail-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .org-detail-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 15px;
+    }
+    
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .stat-item {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 24px;
+    }
+    
+    .welcome-message {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 10px;
+    }
+    
+    .contact-info-card {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 8px 25px rgba(67, 233, 123, 0.3);
+    }
+    
+    .section-title {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .activity-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #667eea;
+    }
+    
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+        font-weight: 600;
+        padding: 10px 25px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="content-wrapper">
+    <!-- Welcome Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-3">Welcome Back, {{ request.user.get_full_name|default:request.user.username }}</h1>
+                <p class="welcome-message">
+                    <i class="fas fa-quote-left me-2"></i>
+                    Thank you for your dedication to making a difference. Your organization is helping transform lives every day.
+                    <i class="fas fa-quote-right ms-2"></i>
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Messages/Alerts -->
+    {% for msg in messages %}
+    <div class="alert {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-2"></i>
+            <div>{{ msg }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    
+             
+    
+    
+    <!-- Recent Activity -->
+    <div class="row mt-5">
+        <div class="col-lg-8">
+            <div class="org-profile-card">
+                <h3 class="section-title">Recent Activity</h3>
+                
+                <div class="activity-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1"><i class="fas fa-user-plus text-success me-2"></i>New Team Member</h6>
+                            <p class="text-muted mb-0">Sarah Johnson joined as a volunteer coordinator</p>
+                        </div>
+                        <span class="badge bg-light text-dark">2 hours ago</span>
+                    </div>
+                </div>
+                
+                <div class="activity-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1"><i class="fas fa-calendar-check text-primary me-2"></i>Event Scheduled</h6>
+                            <p class="text-muted mb-0">Annual fundraising event scheduled for December 15</p>
+                        </div>
+                        <span class="badge bg-light text-dark">1 day ago</span>
+                    </div>
+                </div>
+                
+                <div class="activity-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1"><i class="fas fa-award text-warning me-2"></i>Achievement Unlocked</h6>
+                            <p class="text-muted mb-0">Reached 100 successful adoptions this year</p>
+                        </div>
+                        <span class="badge bg-light text-dark">3 days ago</span>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-history me-2"></i> View All Activities
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="org-profile-card">
+                <h3 class="section-title">Quick Actions</h3>
+                
+                <div class="d-grid gap-3">
+                    <a href="{% url 'chi' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-child me-2"></i> Manage Children
+                    </a>
+                    
+                    <a href="{% url 'ad_rst' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-hands-helping me-2"></i> View Adoption Requests
+                    </a>
+                    
+                    <a href="{% url 'org_dn' %}" class="btn btn-info btn-lg">
+                        <i class="fas fa-donate me-2"></i> Donation History
+                    </a>
+                    
+                    <a href="{% url 'org_sp' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-hand-holding-heart me-2"></i> Sponsorship Program
+                    </a>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <small class="text-muted">Last login: {{ request.user.last_login|date:"F j, Y, g:i a" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update current date and time
+    function updateDateTime() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        const dateTimeStr = now.toLocaleDateString('en-US', options);
+        
+        // You can display this in a specific element if needed
+        console.log('Current date/time:', dateTimeStr);
+    }
+    
+    updateDateTime();
+    
+    // Add animation to cards
+    const cards = document.querySelectorAll('.org-profile-card, .stat-item, .activity-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate__animated', 'animate__fadeInUp');
+    });
+    
+    // Add hover effect to detail items
+    const detailItems = document.querySelectorAll('.org-detail-item');
+    detailItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
+
+<!-- Add Animate.css for animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+{%endblock%}

@@ -1,0 +1,823 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block chlist %}
+<div class="container-fluid" style="min-height: 100vh; padding-top: 6rem; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <div class="container py-5">
+        <!-- Header Section -->
+        <div class="text-center mx-auto mb-5 pb-4" style="max-width: 800px;">
+            <span class="badge bg-primary bg-opacity-10 text-primary fs-6 fw-semibold px-4 py-2 mb-3 rounded-pill">
+                <i class="bi bi-heart-fill me-2"></i>Children in Need
+            </span>
+            <h1 class="display-5 fw-bold mb-3 text-dark">Meet Our Wonderful Children</h1>
+            <p class="lead text-muted mb-4">
+                Every child deserves love, care, and a bright future. Support a child today and help shape a better tomorrow.
+            </p>
+            <div class="d-flex justify-content-center align-items-center">
+                <div class="me-4">
+                    <i class="bi bi-people-fill text-primary fs-3"></i>
+                    <h4 class="mt-2 fw-bold">{{ child_objs.count }}</h4>
+                    <small class="text-muted">Children</small>
+                </div>
+                <div class="border-start ps-4 me-4">
+                    <i class="bi bi-gender-ambiguous text-success fs-3"></i>
+                    <h4 class="mt-2 fw-bold" id="boyCount">
+                        <!-- Count will be filled by JavaScript -->
+                        0
+                    </h4>
+                    <small class="text-muted">Boys</small>
+                </div>
+                <div class="border-start ps-4">
+                    <i class="bi bi-gender-female text-pink fs-3"></i>
+                    <h4 class="mt-2 fw-bold" id="girlCount">
+                        <!-- Count will be filled by JavaScript -->
+                        0
+                    </h4>
+                    <small class="text-muted">Girls</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Display -->
+        <div class="container mb-5">
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}danger{% else %}success{% endif %} 
+                        alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}exclamation-triangle{% else %}check-circle{% endif %} 
+                             me-2 fs-5"></i>
+                    <strong>{{ msg }}</strong>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Filter Options -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label text-muted fw-semibold">
+                                    <i class="bi bi-filter me-1"></i>Filter by Gender
+                                </label>
+                                <select class="form-select" id="genderFilter">
+                                    <option value="all">All Children</option>
+                                    <option value="male">Boys Only</option>
+                                    <option value="female">Girls Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label text-muted fw-semibold">
+                                    <i class="bi bi-sort-down me-1"></i>Sort by Age
+                                </label>
+                                <select class="form-select" id="ageSort">
+                                    <option value="asc">Youngest First</option>
+                                    <option value="desc">Oldest First</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-semibold">
+                                    <i class="bi bi-search me-1"></i>Search Children
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name or details...">
+                                    <button class="btn btn-primary" type="button" id="searchBtn">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="resetBtn">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Children Grid -->
+        <div class="row g-4" id="childrenGrid">
+            {% for ch in child_objs %}
+            <div class="col-lg-4 col-md-6 child-card-item" data-gender="{{ ch.gender|lower }}" data-age="{{ ch.age }}">
+                <div class="card child-card border-0 shadow-lg h-100 overflow-hidden">
+                    <!-- Child Image with Overlay -->
+                    <div class="position-relative">
+                        {% if ch.image %}
+                        <img src="{{ ch.image.url }}" class="card-img-top" alt="{{ ch.name }}" 
+                             style="height: 300px; object-fit: cover; object-position: center;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 300px;">
+                            <i class="bi bi-person-circle text-muted" style="font-size: 5rem;"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Gender Badge -->
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge {% if ch.gender == 'male' %}bg-info{% elif ch.gender == 'female' %}bg-pink{% else %}bg-secondary{% endif %} 
+                                      text-white px-3 py-2 rounded-pill fw-semibold">
+                                <i class="bi {% if ch.gender == 'male' %}bi-gender-male{% elif ch.gender == 'female' %}bi-gender-female{% else %}bi-gender-ambiguous{% endif %} me-1"></i>
+                                {{ ch.gender|title }}
+                            </span>
+                        </div>
+                        
+                        <!-- Age Badge -->
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge bg-primary bg-opacity-90 text-white px-3 py-2 rounded-pill fw-bold">
+                                <i class="bi bi-calendar3 me-1"></i>{{ ch.age }} years
+                            </span>
+                        </div>
+                        
+                        <!-- Overlay on Hover -->
+                        <div class="image-overlay">
+                            <div class="overlay-content">
+                                {% if ch.image %}
+                                <a href="{{ ch.image.url }}" data-lightbox="child-{{ ch.id }}" 
+                                   class="btn btn-light btn-lg rounded-circle shadow">
+                                    <i class="bi bi-zoom-in text-primary"></i>
+                                </a>
+                                {% else %}
+                                <div class="btn btn-light btn-lg rounded-circle shadow">
+                                    <i class="bi bi-person text-primary"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h3 class="card-title fw-bold text-dark mb-1">{{ ch.name }}</h3>
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-heart-fill text-danger me-1"></i>
+                                    Waiting for a loving family
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <div class="text-muted small">Child ID</div>
+                                <div class="fw-bold text-primary">#CH{{ ch.id|stringformat:"04d" }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Child Details -->
+                        <div class="row mb-4">
+                            <div class="col-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-primary bg-opacity-10 text-primary me-3">
+                                        <i class="bi bi-calendar3"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">With Us Since</small>
+                                        <span class="fw-semibold">{{ ch.since }} years</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-info bg-opacity-10 text-info me-3">
+                                        <i class="bi bi-droplet-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Blood Group</small>
+                                        <span class="fw-semibold">{{ ch.blood_group|default:"Unknown" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if ch.education %}
+                            <div class="col-12">
+                                <div class="d-flex align-items-start">
+                                    <div class="icon-circle bg-success bg-opacity-10 text-success me-3">
+                                        <i class="bi bi-book-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Education</small>
+                                        <span class="fw-semibold">{{ ch.education|truncatechars:50 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2">
+                            <!-- Check if appointment already exists for this child -->
+                            {% if ch.id in child_appointments %}
+                                <!-- Appointment already scheduled - Show status button -->
+                                <button class="btn btn-success btn-lg fw-semibold py-3" disabled>
+                                    <i class="bi bi-calendar-check me-2"></i>Appointment Scheduled
+                                </button>
+                                <a href="{% url 'usr_ap_li' %}" class="btn btn-outline-primary btn-lg fw-semibold py-3">
+                                    <i class="bi bi-calendar-week me-2"></i>View My Appointments
+                                </a>
+                            {% else %}
+                                <!-- No appointment yet - Show schedule button -->
+                                <a href="{% url 'ap_c' ch.id %}" class="btn btn-primary btn-lg fw-semibold py-3">
+                                    <i class="bi bi-calendar-plus me-2"></i>Schedule Appointment
+                                </a>
+                            {% endif %}
+                            
+                            <!-- Additional Action Buttons -->
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" 
+                                        data-bs-target="#childModal{{ ch.id }}">
+                                    <i class="bi bi-info-circle me-1"></i>View Details
+                                </button>
+                                {% if ch.organization %}
+                                <a href="{% url 'sponsor_child' ch.organization.id %}" class="btn btn-outline-success">
+                                    <i class="bi bi-heart me-1"></i>Sponsor
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer bg-light border-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                {% if ch.created_at %}
+                                Added {{ ch.created_at|date:"M d, Y" }}
+                                {% else %}
+                                Recently added
+                                {% endif %}
+                            </small>
+                            <a href="#" class="text-primary small fw-semibold share-btn" data-child-name="{{ ch.name }}">
+                                <i class="bi bi-share me-1"></i>Share
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Child Details Modal -->
+                <div class="modal fade" id="childModal{{ ch.id }}" tabindex="-1" 
+                     aria-labelledby="childModalLabel{{ ch.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <h5 class="modal-title text-white" id="childModalLabel{{ ch.id }}">
+                                    <i class="bi bi-person-badge me-2"></i>Child Profile
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <div class="row g-0">
+                                    <!-- Child Image -->
+                                    <div class="col-md-6">
+                                        {% if ch.image %}
+                                        <img src="{{ ch.image.url }}" class="img-fluid h-100" 
+                                             alt="{{ ch.name }}" style="object-fit: cover; min-height: 400px;">
+                                        {% else %}
+                                        <div class="bg-light d-flex align-items-center justify-content-center h-100" 
+                                             style="min-height: 400px;">
+                                            <i class="bi bi-person-circle text-muted" style="font-size: 8rem;"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Child Details -->
+                                    <div class="col-md-6 p-4">
+                                        <h3 class="fw-bold text-dark mb-3">{{ ch.name }}</h3>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-6 mb-3">
+                                                <div class="detail-item">
+                                                    <i class="bi bi-gender-ambiguous text-primary me-2"></i>
+                                                    <span class="fw-semibold">Gender:</span>
+                                                    <span class="text-dark">{{ ch.gender|title }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="detail-item">
+                                                    <i class="bi bi-calendar3 text-primary me-2"></i>
+                                                    <span class="fw-semibold">Age:</span>
+                                                    <span class="text-dark">{{ ch.age }} years</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="detail-item">
+                                                    <i class="bi bi-heart-fill text-primary me-2"></i>
+                                                    <span class="fw-semibold">With Us:</span>
+                                                    <span class="text-dark">{{ ch.since }} years</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="detail-item">
+                                                    <i class="bi bi-droplet-fill text-primary me-2"></i>
+                                                    <span class="fw-semibold">Blood Group:</span>
+                                                    <span class="text-dark">{{ ch.blood_group|default:"Unknown" }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if ch.education %}
+                                        <div class="mb-4">
+                                            <h6 class="fw-semibold mb-2">
+                                                <i class="bi bi-book-fill text-primary me-2"></i>Education
+                                            </h6>
+                                            <p class="text-muted mb-0">{{ ch.education }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="mb-4">
+                                            <h6 class="fw-semibold mb-2">
+                                                <i class="bi bi-info-circle text-primary me-2"></i>About {{ ch.name }}
+                                            </h6>
+                                            <p class="text-muted">
+                                                {{ ch.name }} is a wonderful child who has been with our organization for {{ ch.since }} years. 
+                                                {% if ch.gender == 'male' %}He{% else %}She{% endif %} is {{ ch.age }} years old and waiting 
+                                                for a loving family to provide care and support.
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <!-- Check appointment status in modal too -->
+                                            {% if ch.id in child_appointments %}
+                                                <button class="btn btn-success btn-lg fw-semibold py-3" disabled>
+                                                    <i class="bi bi-calendar-check me-2"></i>Appointment Already Scheduled
+                                                </button>
+                                                <a href="{% url 'usr_ap_li' %}" class="btn btn-outline-success btn-lg fw-semibold py-3">
+                                                    <i class="bi bi-calendar-week me-2"></i>View Appointment Details
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'ap_c' ch.id %}" class="btn btn-primary btn-lg fw-semibold py-3">
+                                                    <i class="bi bi-calendar-plus me-2"></i>Schedule Appointment
+                                                </a>
+                                            {% endif %}
+                                            {% if ch.organization %}
+                                            <a href="{% url 'sponsor_child' ch.organization.id %}" class="btn btn-success btn-lg fw-semibold py-3">
+                                                <i class="bi bi-heart me-2"></i>Sponsor This Child
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Empty State -->
+            <div class="col-12">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-emoji-frown text-primary" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-primary mb-3">No Children Available</h3>
+                        <p class="lead text-muted mb-4">
+                            Currently, there are no children available for viewing. Please check back later.
+                        </p>
+                        <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-house me-2"></i>Return Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Call to Action -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body text-white text-center p-5">
+                        <h2 class="display-6 fw-bold mb-3">Make a Difference Today</h2>
+                        <p class="lead mb-4 opacity-75">
+                            Your support can change a child's life forever. Consider sponsoring a child or scheduling a visit today.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <!-- FIXED: Check if org_id exists in context -->
+                            {% if org_id %}
+                            <a href="{% url 'sponsor_child' org_id %}" class="btn btn-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-heart-fill text-danger me-2"></i>Sponsor a Child
+                            </a>
+                            <a href="{% url 'donate' org_id %}" class="btn btn-outline-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-cash-coin me-2"></i>Make a Donation
+                            </a>
+                            {% elif child_objs and child_objs.0.organization %}
+                            <!-- If org_id not available but we have at least one child -->
+                            <a href="{% url 'sponsor_child' child_objs.0.organization.id %}" class="btn btn-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-heart-fill text-danger me-2"></i>Sponsor a Child
+                            </a>
+                            <a href="{% url 'donate' child_objs.0.organization.id %}" class="btn btn-outline-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-cash-coin me-2"></i>Make a Donation
+                            </a>
+                            {% else %}
+                            <!-- Fallback to home -->
+                            <a href="{% url 'home' %}" class="btn btn-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-heart-fill text-danger me-2"></i>Find Children
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-light btn-lg px-5 fw-semibold">
+                                <i class="bi bi-cash-coin me-2"></i>Support Organization
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .child-card {
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .child-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .child-card:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .overlay-content .btn {
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+    }
+
+    .child-card:hover .overlay-content .btn {
+        transform: scale(1);
+    }
+
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .bg-pink {
+        background-color: #e83e8c !important;
+    }
+
+    .text-pink {
+        color: #e83e8c !important;
+    }
+
+    .detail-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-group .btn {
+        border-radius: 8px !important;
+    }
+
+    .btn-group .btn:first-child {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+    }
+
+    .btn-group .btn:last-child {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+
+    /* Animation for cards */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .child-card-item {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .child-card-item:nth-child(1) { animation-delay: 0.1s; }
+    .child-card-item:nth-child(2) { animation-delay: 0.2s; }
+    .child-card-item:nth-child(3) { animation-delay: 0.3s; }
+    .child-card-item:nth-child(4) { animation-delay: 0.4s; }
+    .child-card-item:nth-child(5) { animation-delay: 0.5s; }
+    .child-card-item:nth-child(6) { animation-delay: 0.6s; }
+    .child-card-item:nth-child(7) { animation-delay: 0.7s; }
+    .child-card-item:nth-child(8) { animation-delay: 0.8s; }
+
+    /* Modal styles */
+    .modal-content {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        .card-img-top {
+            height: 250px !important;
+        }
+        
+        .modal-dialog {
+            margin: 10px;
+        }
+        
+        .btn-group {
+            flex-direction: column;
+        }
+        
+        .btn-group .btn {
+            border-radius: 8px !important;
+            margin-bottom: 5px;
+        }
+        
+        .btn-group .btn:first-child,
+        .btn-group .btn:last-child {
+            border-radius: 8px !important;
+        }
+        
+        .d-flex.justify-content-center.align-items-center {
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .border-start {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+    }
+
+    /* Stats styling */
+    .display-5 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Calculate gender counts using JavaScript
+        function calculateGenderCounts() {
+            let boyCount = 0;
+            let girlCount = 0;
+            let otherCount = 0;
+            
+            document.querySelectorAll('.child-card-item').forEach(card => {
+                const gender = card.getAttribute('data-gender');
+                if (gender === 'male') {
+                    boyCount++;
+                } else if (gender === 'female') {
+                    girlCount++;
+                } else {
+                    otherCount++;
+                }
+            });
+            
+            // Update the counts in the header
+            const boyCountElement = document.getElementById('boyCount');
+            const girlCountElement = document.getElementById('girlCount');
+            
+            if (boyCountElement) boyCountElement.textContent = boyCount;
+            if (girlCountElement) girlCountElement.textContent = girlCount;
+        }
+        
+        // Call the function to update counts
+        calculateGenderCounts();
+
+        // Filter functionality
+        const genderFilter = document.getElementById('genderFilter');
+        const ageSort = document.getElementById('ageSort');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const childrenCards = document.querySelectorAll('.child-card-item');
+        
+        function filterAndSortChildren() {
+            const gender = genderFilter.value;
+            const ageOrder = ageSort.value;
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            // Filter and sort logic
+            let visibleCount = 0;
+            
+            childrenCards.forEach(card => {
+                const cardGender = card.getAttribute('data-gender');
+                const cardAge = parseInt(card.getAttribute('data-age'));
+                const cardText = card.textContent.toLowerCase();
+                
+                let shouldShow = true;
+                
+                // Filter by gender
+                if (gender !== 'all' && cardGender !== gender) {
+                    shouldShow = false;
+                }
+                
+                // Filter by search term
+                if (searchTerm && !cardText.includes(searchTerm)) {
+                    shouldShow = false;
+                }
+                
+                if (shouldShow) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                    
+                    // Add animation delay based on position
+                    const delay = visibleCount * 0.1;
+                    card.style.animationDelay = `${delay}s`;
+                    card.style.animation = 'fadeInUp 0.5s ease-out';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Sort by age (requires reordering in DOM)
+            if (ageOrder !== 'asc') {
+                const container = document.getElementById('childrenGrid');
+                const cardsArray = Array.from(childrenCards).filter(card => card.style.display !== 'none');
+                
+                // Sort array by age
+                cardsArray.sort((a, b) => {
+                    const ageA = parseInt(a.getAttribute('data-age'));
+                    const ageB = parseInt(b.getAttribute('data-age'));
+                    
+                    if (ageOrder === 'desc') {
+                        return ageB - ageA;
+                    }
+                    return ageA - ageB;
+                });
+                
+                // Reorder DOM
+                cardsArray.forEach(card => {
+                    container.appendChild(card);
+                });
+            }
+            
+            // Show empty state if no results
+            const emptyState = document.querySelector('.col-12 .card-body.text-center .bi-emoji-frown');
+            if (visibleCount === 0) {
+                const childrenGrid = document.getElementById('childrenGrid');
+                const existingEmptySearch = childrenGrid.querySelector('.col-12 .card-body.text-center .bi-search');
+                
+                if (!existingEmptySearch) {
+                    const emptyStateHTML = `
+                        <div class="col-12">
+                            <div class="card border-0 shadow-lg">
+                                <div class="card-body text-center py-5">
+                                    <div class="mb-4">
+                                        <i class="bi bi-search text-primary" style="font-size: 4rem;"></i>
+                                    </div>
+                                    <h3 class="text-primary mb-3">No Children Found</h3>
+                                    <p class="lead text-muted mb-4">
+                                        No children match your search criteria. Try adjusting your filters.
+                                    </p>
+                                    <button class="btn btn-primary btn-lg px-5" id="resetFiltersBtn">
+                                        <i class="bi bi-arrow-clockwise me-2"></i>Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Check if empty state already exists
+                    childrenGrid.insertAdjacentHTML('beforeend', emptyStateHTML);
+                    
+                    document.getElementById('resetFiltersBtn').addEventListener('click', function() {
+                        resetFilters();
+                        this.closest('.col-12').remove();
+                    });
+                }
+            } else {
+                // Remove empty search state if it exists
+                const emptySearchState = document.querySelector('.col-12 .card-body.text-center .bi-search');
+                if (emptySearchState) {
+                    emptySearchState.closest('.col-12').remove();
+                }
+            }
+            
+            // Recalculate gender counts after filtering
+            calculateGenderCounts();
+        }
+        
+        function resetFilters() {
+            genderFilter.value = 'all';
+            ageSort.value = 'asc';
+            searchInput.value = '';
+            filterAndSortChildren();
+        }
+        
+        // Event listeners
+        if (genderFilter) genderFilter.addEventListener('change', filterAndSortChildren);
+        if (ageSort) ageSort.addEventListener('change', filterAndSortChildren);
+        if (searchBtn) searchBtn.addEventListener('click', filterAndSortChildren);
+        if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+        
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    filterAndSortChildren();
+                }
+            });
+        }
+        
+        // Initialize lightbox for image zoom if library is available
+        if (typeof lightbox !== 'undefined') {
+            lightbox.option({
+                'resizeDuration': 200,
+                'wrapAround': true,
+                'albumLabel': "Image %1 of %2"
+            });
+        }
+        
+        // Add click animation to cards
+        childrenCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('a') && !e.target.closest('button')) {
+                    const modalId = this.querySelector('[data-bs-target]')?.getAttribute('data-bs-target');
+                    if (modalId) {
+                        const modal = new bootstrap.Modal(document.querySelector(modalId));
+                        modal.show();
+                    }
+                }
+            });
+        });
+        
+        // Share button functionality
+        document.querySelectorAll('.share-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const childName = this.getAttribute('data-child-name');
+                const shareText = `Check out ${childName} who needs your support!`;
+                const shareUrl = window.location.href;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Support ${childName}`,
+                        text: shareText,
+                        url: shareUrl
+                    });
+                } else {
+                    // Fallback for browsers that don't support Web Share API
+                    navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+                        alert('Link copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        // Simple fallback
+                        const tempInput = document.createElement('input');
+                        document.body.appendChild(tempInput);
+                        tempInput.value = `${shareText} ${shareUrl}`;
+                        tempInput.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(tempInput);
+                        alert('Link copied to clipboard!');
+                    });
+                }
+            });
+        });
+        
+        // Initialize tooltips if Bootstrap is available
+        if (typeof bootstrap !== 'undefined') {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    });
+</script>
+
+{% endblock chlist %}

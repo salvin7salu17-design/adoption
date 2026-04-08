@@ -1,0 +1,592 @@
+{% extends 'organization_panel.html' %}
+{% load static %}
+{% block home %}
+<style>
+    /* Custom Styles for Donations Page */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .page-header p {
+        opacity: 0.9;
+        margin: 10px 0 0 0;
+    }
+    
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+        border: none;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 24px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        color: #2c3e50;
+    }
+    
+    .stat-label {
+        color: #666;
+        margin: 5px 0 0 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .donations-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 20px;
+        border-bottom: none;
+    }
+    
+    .table-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .table td {
+        padding: 20px 15px;
+        vertical-align: middle;
+        border-color: #f1f1f1;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .donor-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-right: 12px;
+    }
+    
+    .donor-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .donor-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .donor-email {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .amount-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #27ae60;
+        border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+    
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .category-medical {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .category-clothing {
+        background-color: rgba(155, 89, 182, 0.15);
+        color: #8e44ad;
+        border: 1px solid rgba(155, 89, 182, 0.2);
+    }
+    
+    .category-education {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: #2980b9;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .category-sports {
+        background-color: rgba(243, 156, 18, 0.15);
+        color: #d35400;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .category-food {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #27ae60;
+        border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-paid {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #27ae60;
+        border: 1px solid rgba(46, 204, 113, 0.2);
+    }
+    
+    .status-pending {
+        background-color: rgba(243, 156, 18, 0.15);
+        color: #d35400;
+        border: 1px solid rgba(243, 156, 18, 0.2);
+    }
+    
+    .status-failed {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #c0392b;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .order-id {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.85rem;
+        color: #666;
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .date-info {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 5px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .empty-icon {
+        font-size: 5rem;
+        color: #ddd;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+    
+    .export-btn {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+        color: white;
+    }
+    
+    .filter-btn {
+        background: white;
+        border: 2px solid #e0e0e0;
+        padding: 10px 25px;
+        border-radius: 8px;
+        color: #666;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .filter-btn:hover {
+        background: #f8f9fa;
+        border-color: #667eea;
+        color: #667eea;
+    }
+</style>
+
+<div class="content-wrapper">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-donate me-2"></i>Donations Management</h1>
+                <p class="mb-0">View and manage all donations received by your organization</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="fas fa-hand-holding-usd" style="font-size: 1.8rem; color: #667eea;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Messages/Alerts -->
+    {% for msg in messages %}
+    <div class="alert {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-2"></i>
+            <div>
+                <strong>{% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error:{% else %}Success:{% endif %}</strong> {{ msg }}
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    
+    <!-- Statistics Cards -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <p class="stat-number">{{ dons|length }}</p>
+            <p class="stat-label">Total Donations</p>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <p class="stat-number">₹ {{ total_amount|default:"0" }}</p>
+            <p class="stat-label">Total Amount</p>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <i class="fas fa-user-friends"></i>
+            </div>
+            <p class="stat-number">{{ unique_donors|default:"0" }}</p>
+            <p class="stat-label">Unique Donors</p>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <p class="stat-number">₹ {{ avg_donation|default:"0" }}</p>
+            <p class="stat-label">Average Donation</p>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <button class="filter-btn me-2">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+            <button class="export-btn">
+                <i class="fas fa-file-export"></i> Export Report
+            </button>
+        </div>
+        <div>
+            <span class="text-muted">
+                Last updated: {% now "F j, Y, g:i a" %}
+            </span>
+        </div>
+    </div>
+    
+    <!-- Donations Table -->
+    <div class="donations-table">
+        <div class="table-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-list me-2"></i>All Donations</h4>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-white-50">
+                        Showing {{ dons|length }} donation{{ dons|pluralize }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        {% if not dons %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-donate"></i>
+            </div>
+            <h3 class="mb-3">No Donations Received Yet</h3>
+            <p class="text-muted mb-4">When donors make contributions, they will appear here for your review.</p>
+        </div>
+        {% else %}
+        <!-- Donations Table -->
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Donor</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for donation in dons %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="donor-info">
+                                <div class="donor-avatar">
+                                    {{ donation.personal_details.fname|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="donor-name">{{ donation.personal_details.fname }} {{ donation.personal_details.lname }}</div>
+                                    <div class="donor-email">{{ donation.personal_details.emailaddress|default:"No email" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="amount-badge">
+                                <i class="fas fa-rupee-sign"></i> {{ donation.amount }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if donation.category == 'medical' %}
+                            <span class="category-badge category-medical">
+                                <i class="fas fa-heartbeat"></i> Medical
+                            </span>
+                            {% elif donation.category == 'clothings' %}
+                            <span class="category-badge category-clothing">
+                                <i class="fas fa-tshirt"></i> Clothing
+                            </span>
+                            {% elif donation.category == 'education' %}
+                            <span class="category-badge category-education">
+                                <i class="fas fa-graduation-cap"></i> Education
+                            </span>
+                            {% elif donation.category == 'sports' %}
+                            <span class="category-badge category-sports">
+                                <i class="fas fa-running"></i> Sports
+                            </span>
+                            {% elif donation.category == 'food_and_nutrition' %}
+                            <span class="category-badge category-food">
+                                <i class="fas fa-utensils"></i> Food
+                            </span>
+                            {% else %}
+                            <span class="category-badge">
+                                <i class="fas fa-question-circle"></i> {{ donation.category }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if donation.status == 'paid' or donation.is_paid %}
+                            <span class="status-badge status-paid">
+                                <i class="fas fa-check-circle"></i> Paid
+                            </span>
+                            {% elif donation.status == 'pending' %}
+                            <span class="status-badge status-pending">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                            {% elif donation.status == 'failed' %}
+                            <span class="status-badge status-failed">
+                                <i class="fas fa-times-circle"></i> Failed
+                            </span>
+                            {% else %}
+                            <span class="status-badge">
+                                <i class="fas fa-circle"></i> {{ donation.status|title }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code class="order-id">{{ donation.order_id|default:"N/A"|truncatechars:15 }}</code>
+                        </td>
+                        <td>
+                            {% if donation.created_at %}
+                            <div class="date-info">
+                                <i class="fas fa-calendar me-1"></i>{{ donation.created_at|date:"M d, Y" }}
+                            </div>
+                            <div class="date-info">
+                                <i class="fas fa-clock me-1"></i>{{ donation.created_at|date:"g:i A" }}
+                            </div>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination (if needed) -->
+        {% if dons.paginator %}
+        <div class="p-4 border-top">
+            <nav aria-label="Donations pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if dons.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ dons.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in dons.paginator.page_range %}
+                    <li class="page-item {% if dons.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if dons.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ dons.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Export button functionality
+    const exportBtn = document.querySelector('.export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            // Add export functionality here
+            alert('Export functionality will be implemented here. You can export to CSV or PDF.');
+        });
+    }
+    
+    // Filter button functionality
+    const filterBtn = document.querySelector('.filter-btn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function() {
+            // Add filter functionality here
+            alert('Filter functionality will allow you to filter donations by date, amount, category, or status.');
+        });
+    }
+    
+    // Initialize tooltips
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+        new bootstrap.Tooltip(tooltip);
+    });
+});
+</script>
+
+<!-- Add Animate.css for animations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+{% endblock %}

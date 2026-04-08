@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <div class="row" style="height:90vh;padding-top:10rem;">
+    
+    <div class="col-12">
+      <h1 class="text-center">Child List</h1>
+      {% for msg in messages %}
+      {% if msg.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>{{msg}}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% else %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <strong>{{msg}}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
+      {% endfor %}
+      <div class="row g-4">
+        {% for ch in child_list %}
+        <div class="col-lg-6 col-xl-3">
+            <div class="blog-item">
+                <div class="blog-img">
+                    <div class="blog-info">
+                        <!-- <span><i class="fa fa-clock"></i> Dec 01.2024</span> -->
+                        <!-- <div class="d-flex">
+                            <span class="me-3"> 3 <i class="fa fa-heart"></i></span>
+                            <a href="#" class="text-white">0 <i class="fa fa-comment"></i></a>
+                        </div> -->
+                    </div>
+                
+                </div>
+                <div class="text-dark border p-4 position-relative">
+                    <h4 class="mb-4"><span class="fw-bold">Name:</span> {{ch.name}}</h4>
+                    <p class="mb-4"><span class="fw-bold">Age:</span> {{ch.age}}</p>
+                    <p class="mb-4"><span class="fw-bold">Gender:</span> {{ch.gender}}</p>
+                    <p class="mb-4"><span class="fw-bold">Born:</span> {{ch.since}} {{ch.id}}</p>
+                    
+                    <!-- Button Container with Enhanced Styling -->
+                    <div class="d-grid gap-2 mt-4">
+                        <a class="btn btn-primary text-white py-2 px-4 my-1 btn-hover-bg shadow-sm" 
+                           href="{% url 'life_sp' pk=ch.id %}"
+                           style="transition: all 0.3s ease; border-radius: 8px;">
+                            <i class="fas fa-heart me-2"></i>Lifetime Sponsorship
+                        </a>
+                        <a class="btn btn-outline-primary py-2 px-4 my-1 btn-hover-bg" 
+                           href="{% url 'sponser_category' ch.id %}"
+                           style="transition: all 0.3s ease; border-radius: 8px; border-width: 2px;">
+                            <i class="fas fa-list-alt me-2"></i>Category-wise Sponsorship
+                        </a>
+                    </div>
+                    
+                    <!-- Enhanced Hover Effect for Entire Card -->
+                    <div class="position-absolute top-0 end-0 p-3">
+                        <span class="badge bg-success rounded-pill px-3 py-2" 
+                              style="font-size: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            ID: {{ch.id}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+    .btn-hover-bg:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+    }
+    
+    .blog-item:hover {
+        transform: translateY(-5px);
+        transition: transform 0.3s ease;
+    }
+    
+    .blog-item .border {
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border: none;
+    }
+    
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white !important;
+    }
+</style>
+
+{% endblock content %}

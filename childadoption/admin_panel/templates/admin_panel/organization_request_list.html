@@ -1,0 +1,120 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Organization Requests{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-user-check mr-2"></i>Organization Requests
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <div>
+            <h2 class="h4 mb-1">Organization Approval Queue</h2>
+            <p class="text-muted mb-0">New organization registrations arrive here for admin review and approval.</p>
+        </div>
+        <a href="{% url 'admin_panel:organization_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-building mr-1"></i>View All Organizations
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Pending Requests</div>
+                            <div class="display-6 font-weight-bold">{{ pending_count }}</div>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:56px;height:56px;background:#fff3cd;color:#856404;">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Rejected Requests</div>
+                            <div class="display-6 font-weight-bold">{{ rejected_count }}</div>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:56px;height:56px;background:#fdecea;color:#b42318;">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Organization</th>
+                            <th>Contact Person</th>
+                            <th>Contact Details</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for org in org_requests %}
+                        <tr>
+                            <td>#{{ org.id }}</td>
+                            <td>
+                                <div class="font-weight-bold">{{ org.name }}</div>
+                                <small class="text-muted">{{ org.address|truncatechars:50 }}</small>
+                            </td>
+                            <td>
+                                {{ org.user.fname|default:'' }} {{ org.user.lname|default:'' }}<br>
+                                <small class="text-muted">@{{ org.user.username }}</small>
+                            </td>
+                            <td>
+                                <div>{{ org.user.emailaddress|default:org.user.email|default:"-" }}</div>
+                                <small class="text-muted">{{ org.contact_number|default:"-" }}</small>
+                            </td>
+                            <td>
+                                {% if org.verification_status == 'pending' %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ org.created_at|date:"M d, Y h:i A"|default:"-" }}</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center flex-wrap" style="gap:8px;">
+                                    <a href="{% url 'admin_panel:organization_detail' org.id %}" class="btn btn-sm btn-outline-secondary">View</a>
+                                    <form method="post" action="{% url 'admin_panel:update_organization_status' org.id 'approve' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form method="post" action="{% url 'admin_panel:update_organization_status' org.id 'reject' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                No organization requests are waiting right now.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

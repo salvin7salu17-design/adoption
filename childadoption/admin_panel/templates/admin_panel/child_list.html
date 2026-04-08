@@ -1,0 +1,993 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Children Management{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-child mr-2"></i>Children Management
+{% endblock %}
+
+{% block content %}
+<!-- Action Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <div class="d-flex align-items-center mb-2 mb-sm-0">
+        <div class="btn-group mr-2">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                <i class="fas fa-filter mr-1"></i>Filter
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">All Children</a>
+                <a class="dropdown-item" href="#">Available for Adoption</a>
+                <a class="dropdown-item" href="#">In Process</a>
+                <a class="dropdown-item" href="#">Adopted</a>
+                <a class="dropdown-item" href="#">Sponsored</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Infants (0-2)</a>
+                <a class="dropdown-item" href="#">Toddlers (3-5)</a>
+                <a class="dropdown-item" href="#">Children (6-12)</a>
+                <a class="dropdown-item" href="#">Teens (13-17)</a>
+            </div>
+        </div>
+        <div class="btn-group mr-2">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                <i class="fas fa-sort mr-1"></i>Sort By
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">Name</a>
+                <a class="dropdown-item" href="#">Age (Youngest first)</a>
+                <a class="dropdown-item" href="#">Age (Oldest first)</a>
+                <a class="dropdown-item" href="#">Date Added</a>
+                <a class="dropdown-item" href="#">Organization</a>
+            </div>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-toggle="collapse" data-target="#advancedFilters">
+            <i class="fas fa-sliders-h mr-1"></i>Advanced
+        </button>
+    </div>
+    <div class="d-flex">
+        <div class="input-group mr-2" style="width: 280px;">
+            <input type="text" class="form-control form-control-sm" placeholder="Search children..." id="childSearch">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary btn-sm" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addChildModal">
+            <i class="fas fa-plus-circle mr-1"></i>Add Child
+        </button>
+    </div>
+</div>
+
+<!-- Advanced Filters Collapse -->
+<div class="collapse mb-4" id="advancedFilters">
+    <div class="card card-body bg-light">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Age Range</label>
+                    <div class="d-flex">
+                        <input type="number" class="form-control form-control-sm mr-1" placeholder="Min">
+                        <input type="number" class="form-control form-control-sm ml-1" placeholder="Max">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Gender</label>
+                    <select class="form-control form-control-sm">
+                        <option>All</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Status</label>
+                    <select class="form-control form-control-sm">
+                        <option>All</option>
+                        <option>Available</option>
+                        <option>In Process</option>
+                        <option>Adopted</option>
+                        <option>Sponsored</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Organization</label>
+                    <select class="form-control form-control-sm">
+                        <option>All Organizations</option>
+                        {% for o in organizations %}
+                        <option>{{ o.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Medical Needs</label>
+                    <select class="form-control form-control-sm">
+                        <option>Any</option>
+                        <option>With Special Needs</option>
+                        <option>Without Special Needs</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Siblings</label>
+                    <select class="form-control form-control-sm">
+                        <option>Any</option>
+                        <option>Has Siblings</option>
+                        <option>No Siblings</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="small text-muted">Added Date</label>
+                    <input type="date" class="form-control form-control-sm">
+                </div>
+            </div>
+        </div>
+        <div class="text-right mt-2">
+            <button class="btn btn-sm btn-primary">Apply Filters</button>
+            <button class="btn btn-sm btn-outline-secondary">Reset</button>
+        </div>
+    </div>
+</div>
+
+<!-- Children Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-primary-soft">
+                <i class="fas fa-child text-primary"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Total Children</span>
+                <span class="stats-value">{{ children|length }}</span>
+                <span class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i> +8%
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-success-soft">
+                <i class="fas fa-heart text-success"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Available</span>
+                <span class="stats-value">{{ available_count|default:'0' }}</span>
+                <span class="stats-trend positive">
+                    <i class="fas fa-check"></i> Ready
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-warning-soft">
+                <i class="fas fa-clock text-warning"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">In Process</span>
+                <span class="stats-value">{{ in_process_count|default:'0' }}</span>
+                <span class="stats-trend neutral">
+                    <i class="fas fa-hourglass-half"></i> Pending
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-icon bg-info-soft">
+                <i class="fas fa-star text-info"></i>
+            </div>
+            <div class="stats-details">
+                <span class="stats-label">Sponsored</span>
+                <span class="stats-value">{{ sponsored_count|default:'0' }}</span>
+                <span class="stats-trend">
+                    <i class="fas fa-hand-holding-heart"></i> Supported
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Age Distribution Bar (Quick Overview) -->
+<div class="age-distribution mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0"><i class="fas fa-chart-pie mr-2"></i>Age Distribution</h6>
+        <small class="text-muted">{{ children|length }} children total</small>
+    </div>
+    <div class="progress" style="height: 25px;">
+        <div class="progress-bar bg-info" style="width: 25%" title="Infants (0-2)">Infants 25%</div>
+        <div class="progress-bar bg-success" style="width: 30%" title="Toddlers (3-5)">Toddlers 30%</div>
+        <div class="progress-bar bg-warning" style="width: 25%" title="Children (6-12)">Children 25%</div>
+        <div class="progress-bar bg-primary" style="width: 20%" title="Teens (13-17)">Teens 20%</div>
+    </div>
+</div>
+
+<!-- Children Grid/Table View Toggle -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="view-toggle btn-group btn-group-sm">
+        <button class="btn btn-outline-secondary active" data-view="table">
+            <i class="fas fa-table"></i> Table
+        </button>
+        <button class="btn btn-outline-secondary" data-view="grid">
+            <i class="fas fa-th-large"></i> Grid
+        </button>
+        <button class="btn btn-outline-secondary" data-view="cards">
+            <i class="fas fa-id-card"></i> Cards
+        </button>
+    </div>
+    <div class="export-buttons">
+        <button class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-download mr-1"></i>Export
+        </button>
+    </div>
+</div>
+
+<!-- Table View -->
+<div class="table-view">
+    <div class="table-container">
+        <table class="table table-hover" id="childrenTable">
+            <thead>
+                <tr>
+                    <th width="50">ID</th>
+                    <th width="50">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="selectAll">
+                            <label class="custom-control-label" for="selectAll"></label>
+                        </div>
+                    </th>
+                    <th>Child</th>
+                    <th>Age & Gender</th>
+                    <th>Organization</th>
+                    <th>Status</th>
+                    <th>Medical</th>
+                   
+                    <th width="120">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in children %}
+                <tr>
+                    <td class="font-weight-bold text-muted">#{{ c.id }}</td>
+                    <td>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input child-checkbox" id="child_{{ c.id }}" value="{{ c.id }}">
+                            <label class="custom-control-label" for="child_{{ c.id }}"></label>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="child-avatar mr-2">
+                                {% if c.photo %}
+                                    <img src="{{ c.photo.url }}" alt="{{ c.name }}" class="rounded-circle" width="45" height="45" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="child-avatar-placeholder" style="background: {% cycle 'linear-gradient(135deg, #4e73df, #6f8ae0)' 'linear-gradient(135deg, #1cc88a, #20e09e)' 'linear-gradient(135deg, #36b9cc, #54d1e8)' 'linear-gradient(135deg, #f6c23e, #f8c55b)' %}">
+                                        {{ c.name|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="font-weight-bold">{{ c.name }}</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt mr-1"></i>DOB: {{ c.date_of_birth|date:'M d, Y'|default:'N/A' }}
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="age-gender">
+                            <span class="badge badge-pill badge-light mr-1">
+                                <i class="fas fa-birthday-cake mr-1"></i>{{ c.age }} yrs
+                            </span>
+                            {% if c.gender|lower == 'male' %}
+                                <span class="badge badge-pill badge-info"><i class="fas fa-mars mr-1"></i>Male</span>
+                            {% elif c.gender|lower == 'female' %}
+                                <span class="badge badge-pill badge-success"><i class="fas fa-venus mr-1"></i>Female</span>
+                            {% else %}
+                                <span class="badge badge-pill badge-secondary">{{ c.gender }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="organization-info">
+                            <span class="d-inline-block" title="{{ c.organization.name }}">
+                                <i class="fas fa-building text-muted mr-1"></i>
+                                {{ c.organization.name|truncatechars:20 }}
+                            </span>
+                            {% if c.organization.verification_status == 'verified' %}
+                                <i class="fas fa-check-circle text-success" title="Verified Organization"></i>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if c.status == 'available' %}
+                            <span class="status-badge status-available">
+                                <span class="status-dot"></span> Available
+                            </span>
+                        {% elif c.status == 'in_process' %}
+                            <span class="status-badge status-process">
+                                <span class="status-dot"></span> In Process
+                            </span>
+                        {% elif c.status == 'adopted' %}
+                            <span class="status-badge status-adopted">
+                                <span class="status-dot"></span> Adopted
+                            </span>
+                        {% elif c.status == 'sponsored' %}
+                            <span class="status-badge status-sponsored">
+                                <span class="status-dot"></span> Sponsored
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-pending">
+                                <span class="status-dot"></span> Pending
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.medical_needs %}
+                            <span class="badge badge-warning" title="{{ c.medical_details|default:'Has medical needs' }}">
+                                <i class="fas fa-notes-medical mr-1"></i>Special Needs
+                            </span>
+                        {% else %}
+                            <span class="badge badge-light text-muted">
+                                <i class="fas fa-check-circle text-success mr-1"></i>None
+                            </span>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'admin_panel:child_detail' c.id %}" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'admin_panel:child_edit' c.id %}" class="btn btn-sm btn-outline-secondary" title="Edit Details">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-success" title="Mark as Adopted" onclick="markAdopted('{{ c.id }}')">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                            <div class="btn-group" role="group">
+                                <button id="moreActions{{ c.id }}" type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="moreActions{{ c.id }}">
+                                    <a class="dropdown-item" href="#"><i class="fas fa-file-medical mr-2"></i>Medical Records</a>
+                                    <a class="dropdown-item" href="#"><i class="fas fa-images mr-2"></i>Gallery</a>
+                                    <a class="dropdown-item" href="#"><i class="fas fa-file-alt mr-2"></i>Documents</a>
+                                    <a class="dropdown-item" href="#"><i class="fas fa-users mr-2"></i>Siblings</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item text-warning" href="#"><i class="fas fa-pause-circle mr-2"></i>Hold</a>
+                                    <a class="dropdown-item text-danger" href="#" onclick="confirmDelete('{{ c.id }}'); return false;"><i class="fas fa-trash mr-2"></i>Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="delete-child-{{ c.id }}" method="post" action="{% url 'admin_panel:child_delete' c.id %}" style="display: none;">
+                            {% csrf_token %}
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-child"></i>
+                            </div>
+                            <h5>No Children Found</h5>
+                            <p class="text-muted">Start by adding a child to the adoption program.</p>
+                            <button class="btn btn-primary mt-2" data-toggle="modal" data-target="#addChildModal">
+                                <i class="fas fa-plus-circle mr-1"></i>Add Your First Child
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Grid View (Hidden by default) -->
+<div class="grid-view" style="display: none;">
+    <div class="row">
+        {% for c in children %}
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="child-card">
+                <div class="card-image">
+                    {% if c.photo %}
+                        <img src="{{ c.photo.url }}" alt="{{ c.name }}">
+                    {% else %}
+                        <div class="card-image-placeholder" style="background: linear-gradient(135deg, #4e73df, #6f8ae0);">
+                            <span>{{ c.name|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="card-status {{ c.status }}">{{ c.status|title }}</div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ c.name }}</h5>
+                    <div class="card-details">
+                        <span><i class="fas fa-birthday-cake mr-1"></i>{{ c.age }} years</span>
+                        <span><i class="fas fa-{{ c.gender|lower }} mr-1"></i>{{ c.gender }}</span>
+                    </div>
+                    <p class="card-organization">
+                        <i class="fas fa-building mr-1"></i>{{ c.organization.name|truncatechars:15 }}
+                    </p>
+                    <div class="card-footer-actions">
+                        <a href="{% url 'admin_panel:child_detail' c.id %}" class="btn btn-sm btn-outline-primary" title="View Profile">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'admin_panel:child_edit' c.id %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-success" title="Mark as Adopted">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Cards View (Hidden by default) -->
+<div class="cards-view" style="display: none;">
+    <!-- Similar to grid but with different layout -->
+</div>
+
+<!-- Pagination -->
+{% if children.has_other_pages %}
+<nav aria-label="Children navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if children.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ children.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i></span></li>
+        {% endif %}
+        
+        {% for i in children.paginator.page_range %}
+            {% if children.number == i %}
+                <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if children.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ children.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Bulk Action Bar -->
+<div class="bulk-action-bar" id="bulkActionBar" style="display: none;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap">
+        <div class="mr-4">
+            <span class="font-weight-bold" id="selectedCount">0</span> child(ren) selected
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-success mr-2" onclick="bulkMarkAvailable()">
+                <i class="fas fa-check-circle mr-1"></i>Mark Available
+            </button>
+            <button class="btn btn-sm btn-outline-primary mr-2" onclick="bulkAssignOrganization()">
+                <i class="fas fa-building mr-1"></i>Assign Org
+            </button>
+            <button class="btn btn-sm btn-outline-warning mr-2" onclick="bulkHold()">
+                <i class="fas fa-pause-circle mr-1"></i>Hold
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="bulkDelete()">
+                <i class="fas fa-trash mr-1"></i>Delete
+            </button>
+            <button class="btn btn-sm btn-outline-secondary ml-2" onclick="clearSelection()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Child Modal -->
+<div class="modal fade" id="addChildModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle mr-2"></i>Add New Child</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Enter child's full name">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Gender</label>
+                                <select class="form-control">
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Organization</label>
+                                <select class="form-control">
+                                    <option>Select Organization</option>
+                                    {% for o in organizations %}
+                                    <option>{{ o.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select class="form-control">
+                                    <option>Available</option>
+                                    <option>In Process</option>
+                                    <option>Sponsored</option>
+                                    <option>Hold</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Medical Needs</label>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="hasMedicalNeeds">
+                            <label class="custom-control-label" for="hasMedicalNeeds">Has special medical needs</label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="medicalDetails" style="display: none;">
+                        <label>Medical Details</label>
+                        <textarea class="form-control" rows="2" placeholder="Describe medical needs..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Child Photo</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="childPhoto">
+                            <label class="custom-file-label" for="childPhoto">Choose photo</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Notes</label>
+                        <textarea class="form-control" rows="2" placeholder="Any additional information..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Add Child</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stats Cards */
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+    border: 1px solid #edf2f7;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.stats-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-right: 15px;
+}
+
+.stats-details {
+    flex: 1;
+}
+
+.stats-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-value {
+    display: inline-block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.2;
+    margin-right: 8px;
+}
+
+.stats-trend {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.stats-trend.positive {
+    background: rgba(28, 200, 138, 0.1);
+    color: #1cc88a;
+}
+
+/* Child Avatar */
+.child-avatar-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-available {
+    background: rgba(28, 200, 138, 0.1);
+    color: #1cc88a;
+}
+
+.status-process {
+    background: rgba(246, 194, 62, 0.1);
+    color: #f6c23e;
+}
+
+.status-adopted {
+    background: rgba(78, 115, 223, 0.1);
+    color: #4e73df;
+}
+
+.status-sponsored {
+    background: rgba(54, 185, 204, 0.1);
+    color: #36b9cc;
+}
+
+.status-pending {
+    background: rgba(133, 135, 150, 0.1);
+    color: #858796;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.status-available .status-dot {
+    background: #1cc88a;
+    box-shadow: 0 0 0 2px rgba(28, 200, 138, 0.2);
+}
+
+.status-process .status-dot {
+    background: #f6c23e;
+    box-shadow: 0 0 0 2px rgba(246, 194, 62, 0.2);
+}
+
+/* Child Cards (Grid View) */
+.child-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #edf2f7;
+}
+
+.child-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.card-image {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+}
+
+.card-image img,
+.card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 600;
+    color: white;
+}
+
+.card-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card-status.available { color: #1cc88a; }
+.card-status.in_process { color: #f6c23e; }
+.card-status.adopted { color: #4e73df; }
+.card-status.sponsored { color: #36b9cc; }
+
+.card-body {
+    padding: 15px;
+}
+
+.card-title {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.card-details {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.card-organization {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 12px;
+}
+
+.card-footer-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    border-top: 1px solid #edf2f7;
+    padding-top: 12px;
+}
+
+/* Age Distribution Bar */
+.age-distribution {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #edf2f7;
+}
+
+/* Bulk Action Bar */
+.bulk-action-bar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e0e0e0;
+    z-index: 1000;
+    animation: slideUp 0.3s ease;
+    min-width: 600px;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    background: #f8f9fc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2.5rem;
+    color: #4e73df;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bulk-action-bar {
+        min-width: 90%;
+        left: 5%;
+        transform: none;
+        border-radius: 12px;
+    }
+    
+    .stats-card {
+        margin-bottom: 15px;
+    }
+}
+</style>
+
+<script>
+// Toggle between views
+document.querySelectorAll('[data-view]').forEach(button => {
+    button.addEventListener('click', function() {
+        document.querySelectorAll('[data-view]').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        const view = this.dataset.view;
+        document.querySelector('.table-view').style.display = view === 'table' ? 'block' : 'none';
+        document.querySelector('.grid-view').style.display = view === 'grid' ? 'block' : 'none';
+        document.querySelector('.cards-view').style.display = view === 'cards' ? 'block' : 'none';
+    });
+});
+
+// Toggle medical details
+document.getElementById('hasMedicalNeeds')?.addEventListener('change', function(e) {
+    document.getElementById('medicalDetails').style.display = e.target.checked ? 'block' : 'none';
+});
+
+// Select All functionality
+document.getElementById('selectAll')?.addEventListener('change', function(e) {
+    document.querySelectorAll('.child-checkbox').forEach(checkbox => {
+        checkbox.checked = e.target.checked;
+    });
+    updateBulkActionBar();
+});
+
+// Individual checkbox change
+document.querySelectorAll('.child-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        updateBulkActionBar();
+    });
+});
+
+// Update bulk action bar
+function updateBulkActionBar() {
+    const selected = document.querySelectorAll('.child-checkbox:checked');
+    const bulkBar = document.getElementById('bulkActionBar');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selected.length > 0) {
+        selectedCount.textContent = selected.length;
+        bulkBar.style.display = 'block';
+    } else {
+        bulkBar.style.display = 'none';
+    }
+}
+
+// Clear selection
+function clearSelection() {
+    document.querySelectorAll('.child-checkbox:checked').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('selectAll').checked = false;
+    updateBulkActionBar();
+}
+
+// Search functionality
+document.getElementById('childSearch')?.addEventListener('keyup', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const tableRows = document.querySelectorAll('#childrenTable tbody tr');
+    
+    tableRows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
+        
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Child actions
+function markAdopted(childId) {
+    if (confirm('Mark this child as adopted? This will update their status and notify relevant parties.')) {
+        console.log('Marking as adopted:', childId);
+    }
+}
+
+function confirmDelete(childId) {
+    if (confirm('Are you sure you want to delete this child record? This action cannot be undone.')) {
+        const form = document.getElementById(`delete-child-${childId}`);
+        if (form) {
+            form.submit();
+        }
+    }
+}
+
+// Bulk actions
+function bulkMarkAvailable() {
+    const selected = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0 && confirm(`Mark ${selected.length} child(ren) as available?`)) {
+        console.log('Bulk mark available:', selected);
+    }
+}
+
+function bulkAssignOrganization() {
+    const selected = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0) {
+        console.log('Bulk assign organization:', selected);
+        // Show organization selection modal
+    }
+}
+
+function bulkDelete() {
+    const selected = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+    if (selected.length > 0 && confirm(`Are you sure you want to delete ${selected.length} child record(s)? This action cannot be undone.`)) {
+        console.log('Bulk delete:', selected);
+    }
+}
+
+// Update file input label
+$('.custom-file-input').on('change', function() {
+    let fileName = $(this).val().split('\\').pop();
+    $(this).next('.custom-file-label').html(fileName);
+});
+</script>
+{% endblock %}
